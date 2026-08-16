@@ -8,10 +8,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## Asking questions
+
+- **`question` tool** → complex decisions or 2–4 well-defined options with real consequences. Put the recommendation first.
+- **Plain text** → simple, direct, or open-ended questions (yes/no, confirmations, clarifications). Don't make the user click through a menu for a one-liner.
+
 ## Project
 
 - Stack: Next.js 16.3.1 (App Router) + React 19.2.8 + Tailwind CSS v4, TypeScript strict.
-- Package manager: **pnpm** (pnpm-workspace.yaml + pnpm-lock.yaml are the source of truth; package-lock.json is also present but unused).
 - Product: `open-daycare` — UI copy in Spanish (see `reference/pantallas/`).
 - Currently the unmodified `create-next-app` starter. `app/page.tsx` and `app/layout.tsx` are still the boilerplate.
 
@@ -41,31 +45,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Skill: spec-driven workflow
 
-Defined in `.agents/skills/spec/SKILL.md` (+ `template.md`). Source pinned via `skills-lock.json` to `klerith/fernando-skills`. Specs land in `specs/` (kebab-case, zero-padded `NN-` prefix). Spec states default to Spanish: `Borrador`, `En revisión`, `Aprobado`, `Implementado`, `Obsoleto`.
+Source: `.agents/skills/spec/SKILL.md` (+ `template.md`), pinned via `skills-lock.json` to `klerith/fernando-skills`. Specs land in `specs/` (kebab-case, zero-padded `NN-` prefix); states: `Borrador`, `En revisión`, `Aprobado`, `Implementado`, `Obsoleto`.
 
-### `/spec <descripción-o-slug>`
-
-`disable-model-invocation: true` — only runs when invoked explicitly. Four phases, in order:
-
-1. **Phase 1 — Context.** Reads `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / `README.md`, inspects existing specs.
-2. **Phase 2 — Questions.** Always required. Blocks of 3–5 concrete questions across scope, data, integration, persistence, UX/states, risks, closed decisions. Never skip.
-3. **Phase 3 — Write.** If Phase 2 was complete, writes the full spec in one shot. Otherwise section-by-section with confirmation.
-4. **Phase 4 — Save.** Writes `specs/NN-slug.md` with state `Borrador`. Seeds `specs/.spec-config.yml` if missing (default `AutoCreateBranch: true`). User is responsible for changing state to `Aprobado` after re-reading.
-
-Hard rules: no code is written; replies match the prompt's language; the objective must fit in one sentence or the feature is split. Allowed tools are intentionally restricted to `Read`, `Glob`, `Grep`, `Write`, `AskUserQuestion`, and a narrow `Bash` set — it cannot run `pnpm`, edit app code, or touch configs outside `specs/`.
-
-### `/spec-impl <NN-slug>`
-
-**Not installed locally.** Only referenced by `/spec`'s Phase 4 ("Next step: run `/spec-impl NN-slug` to implement it") and by the comment inside the seeded `.spec-config.yml`. Expected behaviour per those references:
-
-- Reads the spec at `specs/NN-slug.md`.
-- Reads `specs/.spec-config.yml`:
-  - `AutoCreateBranch: true` → creates and switches to `spec-NN-slug` automatically.
-  - `AutoCreateBranch: false` → asks `[y/N]` before creating the branch.
-- Implements the spec's "Implementation plan" steps, leaving the system runnable after each step.
-- Marks state as `Implementado` when done.
-
-Until installed, you implement specs manually or by asking the agent directly.
+- **`/spec <desc>`** (`disable-model-invocation: true`): 4 phases — Context → Questions (3–5, mandatory) → Write → Save to `specs/NN-slug.md` with state `Borrador`. Never writes code; replies match the prompt's language; objective must fit in one sentence or the feature is split. Seeds `specs/.spec-config.yml` (default `AutoCreateBranch: true`).
+- **`/spec-impl <NN-slug>`**: not installed locally. Referenced only by `/spec` Phase 4 and the seeded `.spec-config.yml`. Until available, implement specs manually or by asking the agent directly.
 
 ## MCPs (configured in `opencode.json`)
 
