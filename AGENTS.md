@@ -65,6 +65,10 @@ Source: `.agents/skills/spec/SKILL.md` (+ `template.md`), pinned via `skills-loc
 - **`/spec-impl <NN-slug>`**: not installed locally. Referenced only by `/spec` Phase 4 and the seeded `.spec-config.yml`. Until available, implement specs manually or by asking the agent directly.
 - **`/spec-verify <NN-slug>`** — invokes the `spec-verifier` subagent to validate a spec's acceptance criteria. The argument may be just the slug (`01-feed-home`) or a full path. Reads the spec, checks each acceptance criterion, consults Context7 for Next.js / App Router / Tailwind v4 recommendations, uses Playwright and vision to compare screens against `reference/screenshots/`, runs the technical checks (`pnpm dev`, `pnpm build`, `pnpm lint`, `npx tsc --noEmit`), marks checks in the spec, and reports the final summary.
 
+## Agents
+
+- **`@spec-verifier`** — Subagente especializado en validar los criterios de aceptación de un spec. Lee el spec, consulta Context7 para recomendaciones de Next.js / App Router / Tailwind v4, usa Playwright y visión para comparar pantallas contra `reference/screenshots/`, y ejecuta los checks técnicos (`pnpm dev`, `pnpm build`, `pnpm lint`, `npx tsc --noEmit`). Se invoca mediante `/spec-verify <NN-slug>`.
+
 ## MCPs (configured in `opencode.json`)
 
 - **Playwright** (local, `@playwright/mcp@latest`) — for browser automation and screenshots. Saves files to `.playwright-mcp/`.
