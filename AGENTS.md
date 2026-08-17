@@ -34,6 +34,20 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Next 16 typed routes:** `app/layout.tsx` uses `LayoutProps<"/">`. Generated route types live in `.next/types/**/*.ts` and `.next/dev/types/**/*.ts` (both in `tsconfig.json` `include`).
 - **No test framework is configured.** Don't add jest/vitest/playwright-test without asking the user first.
 
+## Clean code conventions
+
+- **Code identifiers in English:** all variables, functions, constants, classes, types, interfaces, enums, files, and folders must be named in English.
+- **UI copy stays in Spanish:** only user-facing text (labels, messages, etc.) remains in Spanish; see `reference/pantallas/` and future i18n files.
+- **Meaningful names:** choose names that reveal intent; avoid abbreviations, acronyms, or single-letter names except for common cases like loop indices.
+- **Naming casing:**
+  - `camelCase` for variables, functions, hooks, and instance methods.
+  - `PascalCase` for React components, types, interfaces, classes, and enums.
+  - `UPPER_SNAKE_CASE` for true constants and environment variable keys.
+- **Functions do one thing:** keep functions small and focused on a single responsibility; prefer pure functions and explicit return types when it improves readability.
+- **Avoid magic values:** extract literals and repeated values into named constants.
+- **Comments in English:** all inline comments, JSDoc/TSDoc, and documentation notes must be written in English.
+- **Follow existing project rules:** keep TypeScript strict, ESLint flat config, and Tailwind v4 conventions.
+
 ## Project layout
 
 - `app/` — only entry code (App Router). Currently just `layout.tsx`, `page.tsx`, `globals.css`, `favicon.ico`.
@@ -49,6 +63,11 @@ Source: `.agents/skills/spec/SKILL.md` (+ `template.md`), pinned via `skills-loc
 
 - **`/spec <desc>`** (`disable-model-invocation: true`): 4 phases — Context → Questions (3–5, mandatory) → Write → Save to `specs/NN-slug.md` with state `Borrador`. Never writes code; replies match the prompt's language; objective must fit in one sentence or the feature is split. Seeds `specs/.spec-config.yml` (default `AutoCreateBranch: true`).
 - **`/spec-impl <NN-slug>`**: not installed locally. Referenced only by `/spec` Phase 4 and the seeded `.spec-config.yml`. Until available, implement specs manually or by asking the agent directly.
+- **`/spec-verify <NN-slug>`** — invokes the `spec-verifier` subagent to validate a spec's acceptance criteria. The argument may be just the slug (`01-feed-home`) or a full path. Reads the spec, checks each acceptance criterion, consults Context7 for Next.js / App Router / Tailwind v4 recommendations, uses Playwright and vision to compare screens against `reference/screenshots/`, runs the technical checks (`pnpm dev`, `pnpm build`, `pnpm lint`, `npx tsc --noEmit`), marks checks in the spec, and reports the final summary.
+
+## Agents
+
+- **`@spec-verifier`** — Subagente especializado en validar los criterios de aceptación de un spec. Lee el spec, consulta Context7 para recomendaciones de Next.js / App Router / Tailwind v4, usa Playwright y visión para comparar pantallas contra `reference/screenshots/`, y ejecuta los checks técnicos (`pnpm dev`, `pnpm build`, `pnpm lint`, `npx tsc --noEmit`). Se invoca mediante `/spec-verify <NN-slug>`.
 
 ## MCPs (configured in `opencode.json`)
 

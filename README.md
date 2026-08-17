@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OpenDayCare
 
-## Getting Started
+Aplicación web para la gestión de guarderías, construida con Next.js y Tailwind CSS.
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) 16.3.1 (App Router)
+- [React](https://react.dev) 19.2.8
+- [Tailwind CSS](https://tailwindcss.com) v4
+- [TypeScript](https://www.typescriptlang.org) (modo estricto)
+
+## Requisitos
+
+- [Node.js](https://nodejs.org)
+- [pnpm](https://pnpm.io)
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts disponibles
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `pnpm dev` — inicia el servidor de desarrollo en http://localhost:3000
+- `pnpm build` — compila la aplicación para producción
+- `pnpm start` — inicia la aplicación compilada
+- `pnpm lint` — ejecuta ESLint
+- `npx tsc --noEmit` — ejecuta el chequeo de tipos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estructura del proyecto
 
-## Learn More
+```
+app/            # Código de la aplicación (App Router)
+public/         # Activos estáticos
+reference/      # Mockups visuales y capturas del producto objetivo
+specs/          # Especificaciones de funcionalidades
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Convenciones
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- El código (variables, funciones, tipos, archivos y carpetas) se escribe en inglés.
+- El texto visible para los usuarios se mantiene en español.
+- Se usa `camelCase` para variables y funciones, `PascalCase` para componentes y tipos, y `UPPER_SNAKE_CASE` para constantes.
+- El alias `@/*` apunta a la raíz del repositorio.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Más información
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Para conocer más sobre Next.js, consulta la [documentación oficial](https://nextjs.org/docs).
