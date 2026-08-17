@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6ecdf;
+  --foreground: #3f362e;
+  --card: #fffdf9;
+  --card-border: #ece0d0;
+  --primary: #d9583c;
+  --primary-light: #fbe3d8;
+  --primary-gradient-start: #f4977e;
+  --primary-gradient-end: #ee8164;
+  --accent: #e0654a;
+  --accent-dark: #c5503a;
+  --muted: #6e6359;
+  --muted-light: #94887b;
+  --muted-lighter: #a89a8b;
+  --muted-dark: #8a7c6d;
+  --achievement-bg: #cfebd8;
+  --achievement-text: #3e9b6c;
+  --activity-bg: #c7e7f1;
+  --activity-text: #2e89a6;
+  --announcement-bg: #ccd8f4;
+  --announcement-text: #4e72c8;
+  --avatar-coral: #f2937a;
+  --avatar-blue: #a9d9e8;
+  --avatar-indigo: #ccd8f4;
+  --placeholder-border: #dbcdba;
+  --placeholder-bg: #f4ece1;
+  --placeholder-text: #b0a290;
+  --divider: #e7dac8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-gradient-start: var(--primary-gradient-start);
+  --color-primary-gradient-end: var(--primary-gradient-end);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-muted: var(--muted);
+  --color-muted-light: var(--muted-light);
+  --color-muted-lighter: var(--muted-lighter);
+  --color-muted-dark: var(--muted-dark);
+  --color-achievement-bg: var(--achievement-bg);
+  --color-achievement-text: var(--achievement-text);
+  --color-activity-bg: var(--activity-bg);
+  --color-activity-text: var(--activity-text);
+  --color-announcement-bg: var(--announcement-bg);
+  --color-announcement-text: var(--announcement-text);
+  --color-avatar-coral: var(--avatar-coral);
+  --color-avatar-blue: var(--avatar-blue);
+  --color-avatar-indigo: var(--avatar-indigo);
+  --color-placeholder-border: var(--placeholder-border);
+  --color-placeholder-bg: var(--placeholder-bg);
+  --color-placeholder-text: var(--placeholder-text);
+  --color-divider: var(--divider);
+  --font-sans: var(--font-nunito);
+  --font-display: var(--font-fredoka);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
