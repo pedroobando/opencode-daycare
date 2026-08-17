@@ -4,15 +4,15 @@ import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MenuIcon } from '@/app/components/icons';
 
-export function MobileDrawer() {
+export const MobileDrawer = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
       }
-    }
+    };
 
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);

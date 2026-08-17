@@ -24,7 +24,7 @@ interface NavItemProps {
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
-function NavItem({ href, icon, label, isActive, onClick }: NavItemProps) {
+const NavItem = ({ href, icon, label, isActive, onClick }: NavItemProps) => {
   return (
     <Link
       href={href}
@@ -39,9 +39,9 @@ function NavItem({ href, icon, label, isActive, onClick }: NavItemProps) {
       <span>{label}</span>
     </Link>
   );
-}
+};
 
-export function Sidebar({ onClose }: SidebarProps) {
+export const Sidebar = ({ onClose }: SidebarProps) => {
   return (
     <aside className="relative flex h-full w-[248px] flex-none flex-col border-r border-card-border bg-card px-4 py-6">
       {onClose && (

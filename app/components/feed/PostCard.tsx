@@ -13,7 +13,7 @@ interface PostCardProps {
   post: Post;
 }
 
-function Badge({ type }: { type: Post['type'] }) {
+const Badge = ({ type }: { type: Post['type'] }) => {
   const config = {
     achievement: {
       label: 'LOGRO',
@@ -46,7 +46,7 @@ function Badge({ type }: { type: Post['type'] }) {
   );
 }
 
-function Avatar({ post }: { post: Post }) {
+const Avatar = ({ post }: { post: Post }) => {
   if (post.type === 'announcement') {
     return (
       <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-avatar-indigo text-announcement-text">
@@ -68,17 +68,17 @@ function Avatar({ post }: { post: Post }) {
   );
 }
 
-export function PostCard({ post }: PostCardProps) {
+export const PostCard = ({ post }: PostCardProps) => {
   const [liked, setLiked] = useState(false);
   const likeCount = liked ? post.likes + 1 : post.likes;
 
-  function handleLikeClick() {
+  const handleLikeClick = () => {
     setLiked((previous) => !previous);
-  }
+  };
 
-  function preventDefault(event: React.MouseEvent<HTMLAnchorElement>) {
+  const preventDefault = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-  }
+  };
 
   return (
     <article className="rounded-[20px] border border-card-border bg-card p-5 shadow-[0_4px_16px_-12px_rgba(120,90,60,0.5)]">

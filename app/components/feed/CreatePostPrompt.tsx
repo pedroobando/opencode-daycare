@@ -2,10 +2,10 @@
 
 import { CameraIcon } from '@/app/components/icons';
 
-export function CreatePostPrompt() {
-  function preventDefault(event: React.MouseEvent<HTMLAnchorElement>) {
+export const CreatePostPrompt = () => {
+  const preventDefault = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-  }
+  };
 
   return (
     <a
