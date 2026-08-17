@@ -1,4 +1,5 @@
 import { Sidebar } from "@/app/components/feed/Sidebar";
+import { MobileDrawer } from "@/app/components/feed/MobileDrawer";
 import { CreatePostPrompt } from "@/app/components/feed/CreatePostPrompt";
 import { SectionDivider } from "@/app/components/feed/SectionDivider";
 import { PostCard } from "@/app/components/feed/PostCard";
@@ -31,6 +32,7 @@ export default function HomePage() {
 
       <main className="h-screen min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[760px] px-6 pb-20 pt-8 sm:px-10">
+          <MobileDrawer />
           <header className="mb-6">
             <div className="mb-1 text-xs font-extrabold uppercase tracking-wide text-primary">
               GUARDERÍA · SALA SOLES
