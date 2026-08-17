@@ -63,6 +63,7 @@ Source: `.agents/skills/spec/SKILL.md` (+ `template.md`), pinned via `skills-loc
 
 - **`/spec <desc>`** (`disable-model-invocation: true`): 4 phases — Context → Questions (3–5, mandatory) → Write → Save to `specs/NN-slug.md` with state `Borrador`. Never writes code; replies match the prompt's language; objective must fit in one sentence or the feature is split. Seeds `specs/.spec-config.yml` (default `AutoCreateBranch: true`).
 - **`/spec-impl <NN-slug>`**: not installed locally. Referenced only by `/spec` Phase 4 and the seeded `.spec-config.yml`. Until available, implement specs manually or by asking the agent directly.
+- **`/spec-verify <NN-slug>`** — invokes the `spec-verifier` subagent to validate a spec's acceptance criteria. The argument may be just the slug (`01-feed-home`) or a full path. Reads the spec, checks each acceptance criterion, consults Context7 for Next.js / App Router / Tailwind v4 recommendations, uses Playwright and vision to compare screens against `reference/screenshots/`, runs the technical checks (`pnpm dev`, `pnpm build`, `pnpm lint`, `npx tsc --noEmit`), marks checks in the spec, and reports the final summary.
 
 ## MCPs (configured in `opencode.json`)
 
