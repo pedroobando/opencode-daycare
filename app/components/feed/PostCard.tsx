@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { Post } from "@/app/lib/posts";
+import { useState } from 'react';
+import type { Post } from '@/app/lib/posts';
 import {
   HeartIcon,
   CommentIcon,
   ImagePlaceholderIcon,
   MegaphoneIcon,
-} from "@/app/components/icons";
+} from '@/app/components/icons';
 
 interface PostCardProps {
   post: Post;
 }
 
-function Badge({ type }: { type: Post["type"] }) {
+function Badge({ type }: { type: Post['type'] }) {
   const config = {
     achievement: {
-      label: "LOGRO",
-      bgClass: "bg-achievement-bg",
-      textClass: "text-achievement-text",
+      label: 'LOGRO',
+      bgClass: 'bg-achievement-bg',
+      textClass: 'text-achievement-text',
     },
     activity: {
-      label: "ACTIVIDAD",
-      bgClass: "bg-activity-bg",
-      textClass: "text-activity-text",
+      label: 'ACTIVIDAD',
+      bgClass: 'bg-activity-bg',
+      textClass: 'text-activity-text',
     },
     announcement: {
-      label: "ANUNCIO",
-      bgClass: "bg-announcement-bg",
-      textClass: "text-announcement-text",
+      label: 'ANUNCIO',
+      bgClass: 'bg-announcement-bg',
+      textClass: 'text-announcement-text',
     },
   };
 
@@ -39,9 +39,7 @@ function Badge({ type }: { type: Post["type"] }) {
       className={`flex items-center gap-[7px] rounded-full px-3 py-[6px] ${bgClass}`}
     >
       <span className={`h-2 w-2 rounded-full ${textClass}`} />
-      <span
-        className={`text-xs font-extrabold tracking-wide ${textClass}`}
-      >
+      <span className={`text-xs font-extrabold tracking-wide ${textClass}`}>
         {label}
       </span>
     </div>
@@ -49,7 +47,7 @@ function Badge({ type }: { type: Post["type"] }) {
 }
 
 function Avatar({ post }: { post: Post }) {
-  if (post.type === "announcement") {
+  if (post.type === 'announcement') {
     return (
       <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-avatar-indigo text-announcement-text">
         <MegaphoneIcon className="h-5 w-5" />
@@ -62,7 +60,7 @@ function Avatar({ post }: { post: Post }) {
       className="flex h-11 w-11 flex-none items-center justify-center rounded-full font-display text-[17px] font-semibold"
       style={{
         backgroundColor: post.author.color,
-        color: "#1F7A93",
+        color: '#1F7A93',
       }}
     >
       {post.author.initial}
@@ -105,7 +103,7 @@ export function PostCard({ post }: PostCardProps) {
         {post.content}
       </p>
 
-      {post.type === "activity" && post.photo && (
+      {post.type === 'activity' && post.photo && (
         <a
           href="#"
           onClick={preventDefault}

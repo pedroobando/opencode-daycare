@@ -152,7 +152,7 @@ export function HeartIcon({ className, filled = true }: HeartIconProps) {
     <svg
       className={className}
       viewBox="0 0 24 24"
-      fill={filled ? "currentColor" : "none"}
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"

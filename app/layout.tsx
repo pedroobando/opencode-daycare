@@ -1,26 +1,26 @@
-import type { Metadata } from "next";
-import { Fredoka, Nunito } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Fredoka, Nunito } from 'next/font/google';
+import './globals.css';
 
 const fredoka = Fredoka({
-  variable: "--font-fredoka",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  variable: '--font-fredoka',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 });
 
 const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  style: ["normal", "italic"],
+  variable: '--font-nunito',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
-  title: "OpenDayCare",
-  description: "Feed de la sala Soles",
+  title: 'OpenDayCare',
+  description: 'Feed de la sala Soles',
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="es"

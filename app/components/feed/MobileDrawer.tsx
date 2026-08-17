@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Sidebar } from "./Sidebar";
-import { MenuIcon } from "@/app/components/icons";
+import { useEffect, useState } from 'react';
+import { Sidebar } from './Sidebar';
+import { MenuIcon } from '@/app/components/icons';
 
 export function MobileDrawer() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         setIsOpen(false);
       }
     }
 
     if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen]);
 

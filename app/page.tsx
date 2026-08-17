@@ -1,21 +1,21 @@
-import { Sidebar } from "@/app/components/feed/Sidebar";
-import { MobileDrawer } from "@/app/components/feed/MobileDrawer";
-import { CreatePostPrompt } from "@/app/components/feed/CreatePostPrompt";
-import { SectionDivider } from "@/app/components/feed/SectionDivider";
-import { PostCard } from "@/app/components/feed/PostCard";
-import { posts } from "@/app/lib/posts";
+import { Sidebar } from '@/app/components/feed/Sidebar';
+import { MobileDrawer } from '@/app/components/feed/MobileDrawer';
+import { CreatePostPrompt } from '@/app/components/feed/CreatePostPrompt';
+import { SectionDivider } from '@/app/components/feed/SectionDivider';
+import { PostCard } from '@/app/components/feed/PostCard';
+import { posts } from '@/app/lib/posts';
 
 function formatDate(date: Date): string {
-  const formatter = new Intl.DateTimeFormat("es", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
+  const formatter = new Intl.DateTimeFormat('es', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
   });
 
   const parts = formatter.formatToParts(date);
-  const weekday = parts.find((part) => part.type === "weekday")?.value ?? "";
-  const day = parts.find((part) => part.type === "day")?.value ?? "";
-  const month = parts.find((part) => part.type === "month")?.value ?? "";
+  const weekday = parts.find((part) => part.type === 'weekday')?.value ?? '';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '';
+  const month = parts.find((part) => part.type === 'month')?.value ?? '';
 
   return `${weekday} ${day} ${month}`;
 }

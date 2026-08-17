@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { CameraIcon } from "@/app/components/icons";
+import { CameraIcon } from '@/app/components/icons';
 
 export function CreatePostPrompt() {
   function preventDefault(event: React.MouseEvent<HTMLAnchorElement>) {

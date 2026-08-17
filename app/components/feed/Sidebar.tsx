@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 import {
   LogoIcon,
   PlusIcon,
@@ -10,7 +10,7 @@ import {
   UserIcon,
   LogoutIcon,
   CloseIcon,
-} from "@/app/components/icons";
+} from '@/app/components/icons';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -31,8 +31,8 @@ function NavItem({ href, icon, label, isActive, onClick }: NavItemProps) {
       onClick={onClick}
       className={`flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] transition-colors ${
         isActive
-          ? "bg-primary-light font-extrabold text-primary"
-          : "bg-transparent font-semibold text-muted hover:bg-card-border/30"
+          ? 'bg-primary-light font-extrabold text-primary'
+          : 'bg-transparent font-semibold text-muted hover:bg-card-border/30'
       }`}
     >
       {icon}
