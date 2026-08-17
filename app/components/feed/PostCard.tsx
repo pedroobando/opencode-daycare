@@ -72,14 +72,10 @@ function Avatar({ post }: { post: Post }) {
 
 export function PostCard({ post }: PostCardProps) {
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
+  const likeCount = liked ? post.likes + 1 : post.likes;
 
   function handleLikeClick() {
-    setLiked((previous) => {
-      const next = !previous;
-      setLikeCount((count) => count + (next ? 1 : -1));
-      return next;
-    });
+    setLiked((previous) => !previous);
   }
 
   function preventDefault(event: React.MouseEvent<HTMLAnchorElement>) {

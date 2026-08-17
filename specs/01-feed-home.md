@@ -1,6 +1,6 @@
 # SPEC 01 — Feed como home `/`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** Ninguno
 > **Fecha:** 2026-08-17
 > **Objetivo:** Implementar la pantalla de feed del mock `feed.dc.html` como la ruta `/` de la aplicación Next.js, usando Tailwind CSS v4, componentes reutilizables y datos mockeados estáticos, sin autenticación ni base de datos.
@@ -69,16 +69,16 @@ export interface Post {
 
 ## Criterios de aceptación
 
-- [ ] `pnpm dev` levanta sin errores y `http://localhost:3000` muestra el feed.
-- [ ] El layout desktop coincide visualmente con `reference/pantallas/feed.dc.html`.
-- [ ] La fecha del header se muestra en español con formato "martes 17 jun" usando la fecha actual.
-- [ ] El botón de like es funcional y el contador aumenta en 1 al hacer click.
-- [ ] En desktop el sidebar es visible y fijo a la izquierda.
-- [ ] En mobile el sidebar está oculto por defecto; el botón hamburguesa lo abre como overlay y se cierra al hacer click fuera.
-- [ ] El sidebar muestra los cuatro links: `Feed`, `Niños`, `Avisos` y `Mi cuenta`. `Feed` está activo; los demás apuntan a `#` y no navegan al hacer click.
-- [ ] `npx tsc --noEmit` no reporta errores.
-- [ ] `pnpm lint` no reporta errores.
-- [ ] `pnpm build` finaliza exitosamente.
+- [x] `pnpm dev` levanta sin errores y `http://localhost:3000` muestra el feed.
+- [x] El layout desktop coincide visualmente con `reference/pantallas/feed.dc.html`.
+- [x] La fecha del header se muestra en español con formato "martes 17 jun" usando la fecha actual.
+- [x] El botón de like es funcional y el contador aumenta en 1 al hacer click.
+- [x] En desktop el sidebar es visible y fijo a la izquierda.
+- [x] En mobile el sidebar está oculto por defecto; el botón hamburguesa lo abre como overlay y se cierra al hacer click fuera.
+- [x] El sidebar muestra los cuatro links: `Feed`, `Niños`, `Avisos` y `Mi cuenta`. `Feed` está activo; los demás apuntan a `#` y no navegan al hacer click.
+- [x] `npx tsc --noEmit` no reporta errores.
+- [x] `pnpm lint` no reporta errores.
+- [x] `pnpm build` finaliza exitosamente.
 
 ## Decisiones tomadas y descartadas
 
