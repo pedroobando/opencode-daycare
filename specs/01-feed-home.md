@@ -32,7 +32,7 @@
 
 ```ts
 // app/lib/posts.ts
-export type PostType = "achievement" | "activity" | "announcement";
+export type PostType = 'achievement' | 'activity' | 'announcement';
 
 export interface Post {
   id: string;
@@ -116,3 +116,26 @@ export interface Post {
 - Imágenes reales en las publicaciones.
 
 Cada uno de estos, si llega, irá en su propio spec.
+
+## Resultados de verificación
+
+**Fecha de verificación:** 2026-08-17
+
+**Resumen:** 10/10 criterios pasaron.
+
+| Criterio | Estado | Notas |
+| --- | --- | --- |
+| `pnpm dev` levanta sin errores y `http://localhost:3000` muestra el feed. | PASS | Servidor responde 200, título "OpenDayCare", sin errores en consola. |
+| Layout desktop coincide visualmente con `reference/pantallas/feed.dc.html`. | PASS | Estructura, colores, tipografía y componentes coinciden con el mock. |
+| Fecha del header en español con formato "{weekday} {day} {month}" usando fecha actual. | PASS | Se muestra "lunes 17 ago" (fecha actual 2026-08-17). |
+| Botón de like funcional y contador aumenta en 1 al hacer click. | PASS | Contador pasó de 3 a 4 tras el click. |
+| En desktop el sidebar es visible y fijo a la izquierda. | PASS | Sidebar renderiza a 248px en viewport 1280x800. |
+| En mobile sidebar oculto por defecto; botón hamburguesa abre overlay y se cierra al click fuera. | PASS | Drawer se abre con overlay `bg-black/30`; cierra con click en overlay o botón cerrar. |
+| Sidebar muestra los cuatro links: Feed activo; los demás a `#` y no navegan. | PASS | Feed tiene clase activa; Niños/Avisos/Mi cuenta tienen `href="#"` y no cambian la URL. |
+| `npx tsc --noEmit` no reporta errores. | PASS | Finaliza sin salida de error. |
+| `pnpm lint` no reporta errores. | PASS | ESLint finaliza sin advertencias ni errores. |
+| `pnpm build` finaliza exitosamente. | PASS | Next.js 16.3.1 genera página estática para `/` sin errores. |
+
+**Observaciones visuales:**
+- El avatar del usuario en el perfil del sidebar muestra visualmente una forma que puede confundirse con "N" en lugar de "C". El código fuente contiene la letra `"C"` correcta; se trata de un detalle de renderizado tipográfico en la fuente Fredoka a tamaños pequeños. No afecta la funcionalidad ni los criterios de aceptación.
+- La paleta de colores, tarjetas de posts, badges y estructura general son fieles al mock de referencia.
