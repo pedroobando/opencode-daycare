@@ -1,6 +1,6 @@
 # SPEC 01 — Feed como home `/`
 
-> **Estado:** Aprovado
+> **Estado:** Aprobado
 > **Depende de:** Ninguno
 > **Fecha:** 2026-08-17
 > **Objetivo:** Implementar la pantalla de feed del mock `feed.dc.html` como la ruta `/` de la aplicación Next.js, usando Tailwind CSS v4, componentes reutilizables y datos mockeados estáticos, sin autenticación ni base de datos.
