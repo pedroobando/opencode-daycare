@@ -21,7 +21,7 @@ interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   isActive?: boolean;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
 function NavItem({ href, icon, label, isActive, onClick }: NavItemProps) {
