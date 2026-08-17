@@ -34,6 +34,20 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Next 16 typed routes:** `app/layout.tsx` uses `LayoutProps<"/">`. Generated route types live in `.next/types/**/*.ts` and `.next/dev/types/**/*.ts` (both in `tsconfig.json` `include`).
 - **No test framework is configured.** Don't add jest/vitest/playwright-test without asking the user first.
 
+## Clean code conventions
+
+- **Code identifiers in English:** all variables, functions, constants, classes, types, interfaces, enums, files, and folders must be named in English.
+- **UI copy stays in Spanish:** only user-facing text (labels, messages, etc.) remains in Spanish; see `reference/pantallas/` and future i18n files.
+- **Meaningful names:** choose names that reveal intent; avoid abbreviations, acronyms, or single-letter names except for common cases like loop indices.
+- **Naming casing:**
+  - `camelCase` for variables, functions, hooks, and instance methods.
+  - `PascalCase` for React components, types, interfaces, classes, and enums.
+  - `UPPER_SNAKE_CASE` for true constants and environment variable keys.
+- **Functions do one thing:** keep functions small and focused on a single responsibility; prefer pure functions and explicit return types when it improves readability.
+- **Avoid magic values:** extract literals and repeated values into named constants.
+- **Comments in English:** all inline comments, JSDoc/TSDoc, and documentation notes must be written in English.
+- **Follow existing project rules:** keep TypeScript strict, ESLint flat config, and Tailwind v4 conventions.
+
 ## Project layout
 
 - `app/` — only entry code (App Router). Currently just `layout.tsx`, `page.tsx`, `globals.css`, `favicon.ico`.
