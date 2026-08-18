@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   LogoIcon,
   PlusIcon,
@@ -42,6 +43,10 @@ const NavItem = ({ href, icon, label, isActive, onClick }: NavItemProps) => {
 };
 
 export const Sidebar = ({ onClose }: SidebarProps) => {
+  const pathname = usePathname();
+  const isFeedActive = pathname === '/';
+  const isKidsActive = pathname === '/kids' || pathname.startsWith('/kids/');
+
   return (
     <aside className="relative flex h-full w-[248px] flex-none flex-col border-r border-card-border bg-card px-4 py-6">
       {onClose && (
@@ -86,13 +91,13 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
           href="/"
           icon={<HomeIcon className="h-[19px] w-[19px]" />}
           label="Feed"
-          isActive
+          isActive={isFeedActive}
         />
         <NavItem
-          href="#"
+          href="/kids"
           icon={<KidsIcon className="h-[19px] w-[19px]" />}
           label="Niños"
-          onClick={(event) => event.preventDefault()}
+          isActive={isKidsActive}
         />
         <NavItem
           href="#"
