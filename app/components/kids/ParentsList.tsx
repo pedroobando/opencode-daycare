@@ -1,3 +1,5 @@
+'use client';
+
 import type { Parent } from '@/app/lib/kids';
 import { getAvatarTextColor } from '@/app/lib/kids';
 import { PlusIcon } from '@/app/components/icons';

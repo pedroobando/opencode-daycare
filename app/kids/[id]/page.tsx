@@ -6,6 +6,7 @@ import { LogoIcon, ArrowLeftIcon } from '@/app/components/icons';
 import { KidProfileHeader } from '@/app/components/kids/KidProfileHeader';
 import { AllergyAlert } from '@/app/components/kids/AllergyAlert';
 import { ParentsList } from '@/app/components/kids/ParentsList';
+import { InactiveLink } from '@/app/components/kids/InactiveLink';
 import { getKidById } from '@/app/lib/kids';
 
 interface KidProfilePageProps {
@@ -86,14 +87,10 @@ export default async function KidProfilePage({ params }: KidProfilePageProps) {
             </div>
 
             <div className="flex w-full flex-col gap-3.5 lg:w-[300px] lg:flex-none">
-              <a
-                href="#"
-                onClick={(event) => event.preventDefault()}
-                className="flex items-center justify-center gap-2 rounded-[14px] bg-foreground py-[13px] text-center text-[15px] font-extrabold text-white"
-              >
+              <InactiveLink className="flex items-center justify-center gap-2 rounded-[14px] bg-foreground py-[13px] text-center text-[15px] font-extrabold text-white">
                 <LogoIcon className="h-[18px] w-[18px]" />
                 Resumen del día
-              </a>
+              </InactiveLink>
 
               <ParentsList parents={kid.linkedParents} />
             </div>

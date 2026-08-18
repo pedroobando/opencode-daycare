@@ -1,3 +1,5 @@
+'use client';
+
 import type { Kid } from '@/app/lib/kids';
 import { getAvatarTextColor } from '@/app/lib/kids';
 
