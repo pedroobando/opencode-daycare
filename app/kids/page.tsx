@@ -82,14 +82,17 @@ export default function KidsPage() {
             (room) =>
               room.kids.length > 0 && (
                 <section key={room.id}>
-                  <RoomDivider roomName={room.name} kidCount={room.kids.length} />
+                  <RoomDivider
+                    roomName={room.name}
+                    kidCount={room.kids.length}
+                  />
                   <div className="grid gap-3.5 sm:grid-cols-2">
                     {room.kids.map((kid) => (
                       <KidCard key={kid.id} kid={kid} />
                     ))}
                   </div>
                 </section>
-              )
+              ),
           )}
         </div>
       </main>
