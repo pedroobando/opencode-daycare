@@ -430,3 +430,16 @@ export const kids: Kid[] = [
 export const getKidById = (id: string): Kid | undefined => {
   return kids.find((kid) => kid.id === id);
 };
+
+const avatarTextColors: Record<string, string> = {
+  '#A9D9E8': '#1F7A93',
+  '#A9C7E8': '#1F7A93',
+  '#F4B8CC': '#C44A7A',
+  '#B9DEC4': '#3E8B62',
+  '#F4DC8E': '#9A7B1E',
+  '#C9B6E8': '#7B5FC0',
+};
+
+export const getAvatarTextColor = (backgroundColor: string): string => {
+  return avatarTextColors[backgroundColor.toUpperCase()] ?? '#3F362E';
+};
