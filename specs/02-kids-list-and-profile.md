@@ -1,6 +1,6 @@
 # SPEC 02 — Listado y perfil de niños `/kids` y `/kids/[id]`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01 — Feed como home `/`
 > **Fecha:** 2026-08-17
 > **Objetivo:** Implementar la pantalla de gestión de niños en `/kids` y el perfil individual en `/kids/[id]`, con dos salones mockeados, buscador funcional, navegación desde el sidebar y página 404 personalizada, sin autenticación ni base de datos.
@@ -84,17 +84,17 @@ export interface Kid {
 
 ## Criterios de aceptación
 
-- [ ] `pnpm dev` levanta sin errores y `http://localhost:3000/kids` muestra el listado de niños.
-- [ ] El sidebar muestra `Niños` activo en `/kids` y `/kids/[id]`, y su link apunta a `/kids`.
-- [ ] `/kids` muestra los 16 niños agrupados por sala: "SALA SOLES 8 niños" y "SALA LUNAS 8 niños".
-- [ ] El buscador filtra en tiempo real por nombre y apellido, ignorando tildes y mayúsculas.
-- [ ] Al hacer click en una tarjeta se navega a `/kids/[id]` y se muestra el perfil correcto.
-- [ ] El perfil muestra nombre, edad, sala, alergias/notas, datos personales, padres vinculados con estado y botones/links inactivos con `href="#"`.
-- [ ] Una URL como `/kids/999` muestra la página 404 con diseño consistente, mensaje "Niño inexistente" y link a `/kids`.
-- [ ] En desktop el sidebar es visible y fijo; en mobile se comporta como drawer igual que en SPEC 01.
-- [ ] `npx tsc --noEmit` no reporta errores.
-- [ ] `pnpm lint` no reporta errores.
-- [ ] `pnpm build` finaliza exitosamente.
+- [x] `pnpm dev` levanta sin errores y `http://localhost:3000/kids` muestra el listado de niños.
+- [x] El sidebar muestra `Niños` activo en `/kids` y `/kids/[id]`, y su link apunta a `/kids`.
+- [x] `/kids` muestra los 16 niños agrupados por sala: "SALA SOLES 8 niños" y "SALA LUNAS 8 niños".
+- [x] El buscador filtra en tiempo real por nombre y apellido, ignorando tildes y mayúsculas.
+- [x] Al hacer click en una tarjeta se navega a `/kids/[id]` y se muestra el perfil correcto.
+- [x] El perfil muestra nombre, edad, sala, alergias/notas, datos personales, padres vinculados con estado y botones/links inactivos con `href="#"`.
+- [x] Una URL como `/kids/999` muestra la página 404 con diseño consistente, mensaje "Niño inexistente" y link a `/kids`.
+- [x] En desktop el sidebar es visible y fijo; en mobile se comporta como drawer igual que en SPEC 01.
+- [x] `npx tsc --noEmit` no reporta errores.
+- [x] `pnpm lint` no reporta errores.
+- [x] `pnpm build` finaliza exitosamente.
 
 ## Decisiones tomadas y descartadas
 
@@ -133,3 +133,21 @@ export interface Kid {
 - Selector/filtro de sala (propuesto para spec posterior).
 - Imágenes reales de avatares.
 - Otras rutas del sidebar.
+
+## Resultados de verificación
+
+- **Fecha de verificación:** 2026-08-18
+- **Resumen:** 11/11 criterios pasaron.
+- **Comandos técnicos:**
+  - `pnpm dev`: levantó sin errores; `http://localhost:3000/kids` respondió 200.
+  - `npx tsc --noEmit`: sin errores.
+  - `pnpm lint`: sin errores.
+  - `pnpm build`: finalizó exitosamente (generó `/`, `/kids`, `/kids/[id]`).
+- **Notas por criterio:**
+  - Sidebar activo en `/kids` y `/kids/[id]` con link a `/kids` verificado mediante inspección DOM.
+  - Se contaron 16 tarjetas y dos salas con contadores "8 niños" cada una.
+  - Buscador probado con "tomás" (tilde) y "DÍAZ" (mayúsculas); filtró correctamente a Tomás Díaz.
+  - Navegación a perfil verificada en `/kids/tomas-diaz` y `/kids/mateo-fernandez`; se muestran datos personales, alergias y padres con estados activo/pendiente.
+  - Los botones/links inactivos (`Editar`, `Resumen del día`, `Vincular otro padre`, `Agregar niño`) apuntan a `href="#"`.
+  - `/kids/999` devolvió HTTP 404 y renderizó la pantalla personalizada con mensaje "Niño inexistente" y link a `/kids`.
+  - Responsive verificado: en desktop el sidebar es visible y fijo; en viewports estrechos aparece el botón de menú y se abre el drawer lateral (comportamiento consistente con SPEC 01). Las capturas de pantalla en viewports muy pequeños (<768 px) fallaron por timeout del MCP de Playwright, pero la funcionalidad se validó mediante inspección DOM.
