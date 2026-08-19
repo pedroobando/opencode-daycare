@@ -174,10 +174,13 @@ export const VincularPadreForm = ({
       </div>
 
       <div className="mb-[18px] rounded-[14px] border-[1.5px] border-dashed border-[#E6D08A] bg-[#FBF1D6] p-[18px] text-center">
+        <div className="mb-2 text-[12px] font-extrabold uppercase tracking-[0.7px] text-[#A88526]">
+          Código de invitación
+        </div>
         <div className="font-display text-[34px] font-semibold tracking-[7px] text-[#8A7234]">
           {invitationCode}
         </div>
-        <div className="text-[13px] text-[#A88526]">Vence en 7 días</div>
+        <div className="mt-1.5 text-[13px] text-[#A88526]">Vence en 7 días</div>
       </div>
 
       <button
