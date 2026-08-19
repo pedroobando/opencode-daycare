@@ -8,11 +8,11 @@ import { pickNextColor } from '@/app/utils/avatar-colors';
 import { generateAlphanumericCode } from '@/app/utils/random-code';
 import { slugify } from '@/app/utils/slugify';
 import {
-  VincularPadreForm,
-  VincularPadreFormPayload,
-} from './VincularPadreForm';
+  LinkParentForm,
+  LinkParentFormPayload,
+} from './LinkParentForm';
 
-interface VincularPadreModalProps {
+interface LinkParentModalProps {
   open: boolean;
   onClose: () => void;
   kidId: string;
@@ -30,14 +30,14 @@ const useMounted = (): boolean => {
   );
 };
 
-export const VincularPadreModal = ({
+export const LinkParentModal = ({
   open,
   onClose,
   kidName,
   existingParents,
   onAddParent,
   triggerRef,
-}: VincularPadreModalProps) => {
+}: LinkParentModalProps) => {
   const mounted = useMounted();
   const cardRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<Element | null>(null);
@@ -120,7 +120,7 @@ export const VincularPadreModal = ({
     event.stopPropagation();
   };
 
-  const handleSubmit = (payload: VincularPadreFormPayload) => {
+  const handleSubmit = (payload: LinkParentFormPayload) => {
     const trimmedName = payload.name.trim();
     const baseId = slugify(trimmedName);
     const alreadyUsed = existingParents.some((parent) => parent.id === baseId);
@@ -146,19 +146,19 @@ export const VincularPadreModal = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="vincular-padre-title"
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-6 py-10"
+      aria-labelledby="link-parent-title"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-6"
       onClick={handleBackdropClick}
     >
       <div
         ref={cardRef}
         onClick={handleCardClick}
-        className="w-full max-w-[520px] overflow-hidden rounded-3xl border border-card-border bg-card shadow-[0_20px_50px_-24px_rgba(63,54,46,0.35)]"
+        className="w-full max-w-[460px] overflow-hidden rounded-3xl border border-card-border bg-card shadow-[0_20px_50px_-24px_rgba(63,54,46,0.35)]"
       >
-        <div className="flex items-start justify-between border-b border-card-border px-6 py-5">
+        <div className="flex items-start justify-between border-b border-card-border px-5 py-4">
           <div>
             <h2
-              id="vincular-padre-title"
+              id="link-parent-title"
               className="font-display text-[18px] font-semibold text-foreground"
             >
               Vincular padre
@@ -175,8 +175,8 @@ export const VincularPadreModal = ({
           </button>
         </div>
 
-        <div className="px-6 pt-5">
-          <div className="mb-5 flex gap-[11px] rounded-[14px] bg-[#E3ECFB] p-[13px_16px]">
+        <div className="px-5 pt-4">
+          <div className="mb-4 flex gap-[11px] rounded-[14px] bg-[#E3ECFB] p-3 px-4">
             <AlertTriangleIcon className="mt-px h-5 w-5 flex-none text-[#4E72C8]" />
             <span className="text-[13.5px] leading-[1.45] text-[#3F5694]">
               Le enviaremos un correo con un código para que active su cuenta.
@@ -185,7 +185,7 @@ export const VincularPadreModal = ({
           </div>
         </div>
 
-        <VincularPadreForm
+        <LinkParentForm
           open={open}
           invitationCode={invitationCode}
           onCancel={onClose}
