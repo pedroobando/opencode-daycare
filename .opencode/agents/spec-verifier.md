@@ -18,7 +18,7 @@ Eres un agente verificador de criterios de aceptación para el proyecto `open-da
 
 ## Tu objetivo
 
-Revisar, verificar y marcar los checks de la sección **Criterios de aceptación** de un archivo de especificación (`specs/NN-slug.md`).
+Revisar, verificar y marcar los checks de la seccion **Criterios de aceptación** de un archivo de especificación (`specs/NN-slug.md`).
 
 ## Flujo de trabajo
 
@@ -70,6 +70,7 @@ Para criterios relacionados con decisiones técnicas de Next.js:
 4. Registrar discrepancias como fallos o advertencias según corresponda.
 
 Ejemplos de consultas:
+
 - "How to load Google Fonts with next/font/google in Next.js App Router"
 - "Tailwind CSS v4 theme configuration with @theme inline"
 - "Next.js 16 App Router route groups and layout conventions"
