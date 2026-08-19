@@ -4,17 +4,17 @@ import { useState } from 'react';
 import { SendIcon } from '@/app/components/icons';
 import { isValidEmail } from '@/app/utils/email';
 
-export interface VincularPadreFormPayload {
+export interface LinkParentFormPayload {
   name: string;
   email: string;
   role: string;
 }
 
-interface VincularPadreFormProps {
+interface LinkParentFormProps {
   open: boolean;
   invitationCode: string;
   onCancel: () => void;
-  onSubmit: (payload: VincularPadreFormPayload) => void;
+  onSubmit: (payload: LinkParentFormPayload) => void;
 }
 
 interface FormErrors {
@@ -25,11 +25,11 @@ interface FormErrors {
 
 const ROLE_OPTIONS = ['Mamá', 'Papá', 'Tutor/a'] as const;
 
-export const VincularPadreForm = ({
+export const LinkParentForm = ({
   open,
   invitationCode,
   onSubmit,
-}: VincularPadreFormProps) => {
+}: LinkParentFormProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<string>('');

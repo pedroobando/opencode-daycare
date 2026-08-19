@@ -6,7 +6,7 @@ import { AllergyAlert } from '@/app/components/kids/AllergyAlert';
 import { InactiveLink } from '@/app/components/kids/InactiveLink';
 import { KidProfileHeader } from '@/app/components/kids/KidProfileHeader';
 import { ParentsList } from '@/app/components/kids/ParentsList';
-import { VincularPadreModal } from '@/app/components/kids/VincularPadreModal';
+import { LinkParentModal } from '@/app/components/kids/LinkParentModal';
 import { ArrowLeftIcon, LogoIcon } from '@/app/components/icons';
 import type { Kid, Parent } from '@/app/lib/kids';
 
@@ -92,7 +92,7 @@ export const KidProfileBody = ({ kid }: KidProfileBodyProps) => {
         </div>
       </div>
 
-      <VincularPadreModal
+      <LinkParentModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         kidId={kid.id}

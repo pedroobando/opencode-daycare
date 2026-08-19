@@ -8,11 +8,11 @@ import { pickNextColor } from '@/app/utils/avatar-colors';
 import { generateAlphanumericCode } from '@/app/utils/random-code';
 import { slugify } from '@/app/utils/slugify';
 import {
-  VincularPadreForm,
-  VincularPadreFormPayload,
-} from './VincularPadreForm';
+  LinkParentForm,
+  LinkParentFormPayload,
+} from './LinkParentForm';
 
-interface VincularPadreModalProps {
+interface LinkParentModalProps {
   open: boolean;
   onClose: () => void;
   kidId: string;
@@ -30,14 +30,14 @@ const useMounted = (): boolean => {
   );
 };
 
-export const VincularPadreModal = ({
+export const LinkParentModal = ({
   open,
   onClose,
   kidName,
   existingParents,
   onAddParent,
   triggerRef,
-}: VincularPadreModalProps) => {
+}: LinkParentModalProps) => {
   const mounted = useMounted();
   const cardRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<Element | null>(null);
@@ -120,7 +120,7 @@ export const VincularPadreModal = ({
     event.stopPropagation();
   };
 
-  const handleSubmit = (payload: VincularPadreFormPayload) => {
+  const handleSubmit = (payload: LinkParentFormPayload) => {
     const trimmedName = payload.name.trim();
     const baseId = slugify(trimmedName);
     const alreadyUsed = existingParents.some((parent) => parent.id === baseId);
@@ -146,7 +146,7 @@ export const VincularPadreModal = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="vincular-padre-title"
+      aria-labelledby="link-parent-title"
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-6 py-10"
       onClick={handleBackdropClick}
     >
@@ -158,7 +158,7 @@ export const VincularPadreModal = ({
         <div className="flex items-start justify-between border-b border-card-border px-6 py-5">
           <div>
             <h2
-              id="vincular-padre-title"
+              id="link-parent-title"
               className="font-display text-[18px] font-semibold text-foreground"
             >
               Vincular padre
@@ -185,7 +185,7 @@ export const VincularPadreModal = ({
           </div>
         </div>
 
-        <VincularPadreForm
+        <LinkParentForm
           open={open}
           invitationCode={invitationCode}
           onCancel={onClose}
