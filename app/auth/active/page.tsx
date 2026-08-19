@@ -1,7 +1,11 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import { CheckIcon, LogoIcon } from '@/app/components/icons';
 
 export default function AuthActivePage() {
+  const [isAuthorized, setIsAuthorized] = useState(false);
   return (
     <div className="w-full max-w-[440px]">
       <div className="mb-6 flex h-[58px] w-[58px] items-center justify-center rounded-[18px] bg-gradient-to-br from-[#F8C3A8] to-[#F2937A] shadow-[0_12px_26px_-10px_rgba(238,129,100,0.65)]">
@@ -78,15 +82,25 @@ export default function AuthActivePage() {
         </div>
       </div>
 
-      <div className="mt-5 flex items-start gap-3 rounded-2xl bg-[#FBF1D6] p-4">
-        <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-lg bg-[#5FB97E]">
-          <CheckIcon className="h-4 w-4 text-white" />
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={isAuthorized}
+        onClick={() => setIsAuthorized((previous) => !previous)}
+        className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl bg-[#FBF1D6] p-4 text-left"
+      >
+        <span
+          className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-lg border-2 border-[#5FB97E] ${
+            isAuthorized ? 'bg-[#5FB97E]' : 'bg-transparent'
+          }`}
+        >
+          {isAuthorized && <CheckIcon className="h-4 w-4 text-white" />}
         </span>
         <span className="text-sm leading-snug text-[#8A7234]">
           Autorizo a la guardería a tomar y compartir fotos de mi hijo dentro de
           la app.
         </span>
-      </div>
+      </button>
 
       <Link
         href={{

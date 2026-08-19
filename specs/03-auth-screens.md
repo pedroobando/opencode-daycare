@@ -11,7 +11,7 @@
 
 - Crear `app/auth/layout.tsx` con panel naranja fijo a la izquierda (logo + claim + "🌿 Guardería Sala Soles") y área de contenido a la derecha con fondo crema, `min-h-screen` y centrado vertical.
 - Crear `app/auth/page.tsx` (login) con título "Iniciar sesión", subtítulo "Ingresá para ver el día de hoy.", input email (vacío o prellenado desde query param, con placeholder de ejemplo), input password, link "¿Olvidaste tu contraseña?" (`href="#"`), botón "Iniciar sesión" (`href="/"`) y link "Activá tu cuenta" (`href="/auth/active"`). **Sin selector de rol.**
-- Crear `app/auth/active/page.tsx` con icono de marca, título "Bienvenida a OpenDayCare", subtítulo, tarjeta de invitación estática (Mateo · Sala Soles), input código de invitación (`defaultValue="7K4P9"`), input email (`defaultValue="lucia.fernandez@gmail.com"`), input password, checkbox de autorización (visual, siempre marcado), botón "Activar mi cuenta" (`href={{ pathname: '/auth', query: { email: 'lucia.fernandez@gmail.com' } }}`) y link "Iniciar sesión" (`href="/auth"`).
+- Crear `app/auth/active/page.tsx` con icono de marca, título "Bienvenida a OpenDayCare", subtítulo, tarjeta de invitación estática (Mateo · Sala Soles), input código de invitación (`defaultValue="7K4P9"`), input email (`defaultValue="lucia.fernandez@gmail.com"`), input password, checkbox de autorización desmarcado por defecto e interactivo (el usuario lo activa al hacer click), botón "Activar mi cuenta" (`href={{ pathname: '/auth', query: { email: 'lucia.fernandez@gmail.com' } }}`) y link "Iniciar sesión" (`href="/auth"`).
 - El campo email del login lee el query param `?email=...` vía `searchParams` de Next.js 16 (tipado `Promise<{ email?: string }>` y `await`) y lo usa como `defaultValue`; si no hay query param, queda vacío. El input siempre muestra un placeholder con un email de ejemplo.
 - Agregar `CheckIcon` a `app/components/icons.tsx` para el checkbox de autorización.
 - Responsive: en mobile (`< md`) el panel naranja se oculta y el contenido ocupa todo el ancho.
@@ -21,7 +21,7 @@
 - Autenticación real (tokens, sesiones, OAuth, validación de credenciales).
 - Base de datos o persistencia de cualquier tipo.
 - Validación real de código de invitación, email o contraseña.
-- El checkbox de autorización es solo visual; no persiste ni se valida.
+- El checkbox de autorización es interactivo solo en la UI; no persiste ni se valida en backend.
 - Selector de rol "Personal" / "Familia" (descartado por el usuario).
 - Recuperación, cambio o cierre de sesión.
 - Sidebar del feed en estas rutas (reemplazado por el panel naranja del layout de auth).
@@ -66,7 +66,7 @@ Esta feature no introduce nuevas estructuras de datos. No hay estado, ni persist
 - [x] `/auth` **no** muestra los botones "Personal" / "Familia" del mock.
 - [x] `/auth` tiene título "Iniciar sesión", inputs email (vacío por defecto, con placeholder de ejemplo) y password, link "¿Olvidaste tu contraseña?" (`#`), botón "Iniciar sesión" (`/`) y link "Activá tu cuenta" (`/auth/active`).
 - [x] Navegar a `/auth?email=lucia.fernandez@gmail.com` muestra el input email prellenado con ese valor.
-- [x] `/auth/active` tiene el icono de marca, título "Bienvenida a OpenDayCare", subtítulo, tarjeta de invitación (Mateo · Sala Soles), inputs código, email y contraseña prellenados, checkbox de autorización marcado, botón "Activar mi cuenta" y link "Iniciar sesión".
+- [x] `/auth/active` tiene el icono de marca, título "Bienvenida a OpenDayCare", subtítulo, tarjeta de invitación (Mateo · Sala Soles), inputs código, email y contraseña prellenados, checkbox de autorización desmarcado por defecto y activable al hacer click, botón "Activar mi cuenta" y link "Iniciar sesión".
 - [x] Al hacer click en "Activar mi cuenta" se navega a `/auth?email=lucia.fernandez@gmail.com` y el input email aparece prellenado.
 - [x] El sidebar del feed (SPEC 01) no aparece en `/auth` ni en `/auth/active`.
 - [x] En mobile (viewport < 768px) el panel naranja se oculta y el contenido ocupa todo el ancho sin perder la usabilidad del formulario.
@@ -89,8 +89,8 @@ Esta feature no introduce nuevas estructuras de datos. No hay estado, ni persist
 - **No:** Navegar directo a `/`. Perdería el paso de tipear la contraseña.
 - **Sí:** "Iniciar sesión" navega a `/`. Coherente con la metáfora de "ya entraste al sistema".
 - **No:** Botón sin acción. Confundiría al usuario.
-- **Sí:** Checkbox de autorización visual, siempre marcado. Sin backend no se puede persistir.
-- **No:** Checkbox interactivo con estado controlado. No aportaría valor sin persistencia.
+- **Sí:** Checkbox de autorización interactivo, desmarcado por defecto. Mejora la experiencia permitiendo al usuario tomar la decisión visualmente.
+- **No:** Checkbox de autorización visual siempre marcado. Sería confuso porque el usuario no puede desactivarlo.
 - **Sí:** "¿Olvidaste tu contraseña?" como link a `#`. Visualmente clickeable, no hace nada.
 - **No:** Texto estático. Pierde affordance visual.
 - **Sí:** Email hardcodeado (`lucia.fernandez@gmail.com`) en `app/auth/active/page.tsx` para construir el link "Activar mi cuenta". El usuario no edita el email en este flujo.
