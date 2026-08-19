@@ -1,7 +1,7 @@
 ---
 description: Verifica los criterios de aceptación de un spec usando Context7 para recomendaciones de Next.js, Playwright para screenshots, y un modelo de visión para comparar contra referencias.
 mode: subagent
-model: opencode-go/kimi-k2.7-code
+model: opencode-go/minimax-m3
 permission:
   edit: allow
   bash: allow
