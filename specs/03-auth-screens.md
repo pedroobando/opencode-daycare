@@ -153,3 +153,4 @@ Cada uno de estos, si llega, irá en su propio spec.
 - No existen screenshots PNG de auth en `reference/screenshots/`; la comparación visual se hizo contra los mocks HTML `reference/pantallas/login.dc.html` y `reference/pantallas/activar-cuenta.dc.html`.
 - La implementación sigue las decisiones del spec y omite intencionalmente el selector de rol del mock de login.
 - El mock `activar-cuenta.dc.html` muestra la pantalla de activación centrada sin panel naranja, mientras que la implementación usa el layout compartido con panel a la izquierda según lo especificado en este documento.
+- Context7 confirma que el uso de `searchParams` como `Promise<{ email?: string }>` con `await`, el layout compartido en `app/auth/layout.tsx` y el URL object form en `next/link` son las convenciones correctas para Next.js 16 App Router.
