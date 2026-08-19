@@ -1,6 +1,6 @@
 # SPEC 05 — Modal "Vincular padre" en `/kids/[id]`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 02 — Listado y perfil de niños `/kids` y `/kids/[id]`, SPEC 03 — Pantallas de autenticación `/auth` y `/auth/active`
 > **Fecha:** 2026-08-19
 > **Objetivo:** Convertir el link "Vincular otro padre" del perfil de niño en un control que abre un modal basado en `reference/pantallas/vincular-padre.dc.html`, valida nombre, email y parentesco como obligatorios, genera un código de invitación alfanumérico de 5 cifras y agrega al padre nuevo al listado local del perfil con estado `pending`, apoyándose en un folder nuevo `app/utils/` con helpers reutilizables.
@@ -156,29 +156,29 @@ const newParent: Parent = {
 
 ## Criterios de aceptación
 
-- [ ] `app/utils/email.ts` exporta `isValidEmail` y `EMAIL_REGEX`. Casos verificados manualmente: `ana@gmail.com`, `x@y.io`, `pedro.lopez@open-daycare.com.ar` → `true`; `foo`, `foo@`, `@bar.com`, `foo bar@x.com`, `foo@@bar.com` → `false`.
-- [ ] `app/utils/random-code.ts` exporta `generateAlphanumericCode` y `ALPHANUMERIC_CHARS`. `generateAlphanumericCode(5)` siempre devuelve una cadena de 5 caracteres en `A–Z + 0–9`; `generateAlphanumericCode(0)` y `generateAlphanumericCode(-3)` devuelven `''`.
-- [ ] `app/utils/slugify.ts` exporta `slugify` con el mismo comportamiento que la versión inline de `AddKidModal` (verificado con casos: "Diego Fernández" → `diego-fernandez`, "María José" → `maria-jose`, " Lucía " → `lucia`).
-- [ ] `app/utils/avatar-colors.ts` exporta `AVATAR_COLOR_PALETTE` y `pickNextColor`. `pickNextColor([], () => '')` devuelve el color menos usado de la lista (que con input vacío es el primero de la paleta).
-- [ ] En `/kids/[id]` para un niño con al menos un padre, el control "Vincular otro padre" es un `<button>` y al hacer click abre el modal con cabecera "Vincular padre", subtítulo "a {nombreCompleto}" y botón X a la derecha.
-- [ ] El modal se monta en `document.body` vía `createPortal`; tiene `role="dialog"`, `aria-modal="true"` y `aria-labelledby="vincular-padre-title"`.
-- [ ] El modal bloquea el scroll del body mientras está abierto y lo restaura al cerrarse; cierra con `Escape`, click en el backdrop y botón X; al cerrar, el foco vuelve al botón "Vincular otro padre".
-- [ ] Al abrir, el foco se posa sobre el input "Nombre del padre/madre".
-- [ ] El campo "Nombre del padre/madre" muestra placeholder "Ej. Diego Fernández" y es obligatorio.
-- [ ] El campo "Email" muestra placeholder "correo@ejemplo.com", es obligatorio y rechaza con error "Ingresá un email válido." los valores inválidos según `isValidEmail`.
-- [ ] El grupo "Parentesco" tiene tres botones pill (Mamá, Papá, Tutor/a), arranca sin selección, solo uno puede estar activo a la vez, es obligatorio y al enviar sin selección muestra "Este campo es obligatorio.".
-- [ ] La caja "CÓDIGO DE INVITACIÓN" muestra un código alfanumérico de exactamente 5 caracteres en `A–Z + 0–9`, generado por `generateAlphanumericCode(5)`. El código no se regenera mientras el modal está abierto; sí se regenera al cerrar y volver a abrir.
-- [ ] Bajo el código aparece el texto "Vence en 7 días".
-- [ ] Al enviar con nombre vacío, email inválido o sin parentesco, aparecen mensajes inline de error rojos en los campos correspondientes y el modal permanece abierto.
-- [ ] Al enviar con los tres campos válidos, el modal se cierra y el padre nuevo aparece al final del listado de `ParentsList` con badge `PENDIENTE`, avatar con la inicial del nombre y un color de la paleta compartida elegido por menor uso sobre `existingParents`.
-- [ ] El padre nuevo tiene `status: 'pending'` y `role` exactamente igual al parentesco elegido ("Mamá", "Papá" o "Tutor/a").
-- [ ] Si el `slugify(nombre)` ya existe en la lista actual de padres del niño, el `id` del nuevo padre lleva sufijo `-${timestamp}` (mismo patrón que SPEC 04).
-- [ ] El padre nuevo se agrega solo al state local del wrapper cliente; no se modifica `app/lib/kids.ts` y al recargar la página desaparece.
-- [ ] Después del refactor del paso 5 del plan, agregar un niño en `/kids` con el modal sigue produciendo un `Kid` con color de la paleta compartida e `id` con sufijo en caso de colisión (SPEC 04 sin regresiones).
-- [ ] `/auth` al hacer click en "Iniciar sesión" con email inválido, aparece "Ingresá un email válido." inline y no se navega a `/`. Con email válido, navega a `/`. El campo email se prellena desde `?email=...` como antes.
-- [ ] `/auth/active` al hacer click en "Activar mi cuenta" con email inválido, aparece "Ingresá un email válido." inline y no se navega. Con email válido, navega a `/auth?email={email}` como antes.
-- [ ] `/auth/active` con el email prefijado (`lucia.fernandez@gmail.com`) sigue activando la cuenta y llegando a `/auth` con el query param.
-- [ ] `npx tsc --noEmit`, `pnpm lint` y `pnpm build` finalizan sin errores.
+- [x] `app/utils/email.ts` exporta `isValidEmail` y `EMAIL_REGEX`. Casos verificados manualmente: `ana@gmail.com`, `x@y.io`, `pedro.lopez@open-daycare.com.ar` → `true`; `foo`, `foo@`, `@bar.com`, `foo bar@x.com`, `foo@@bar.com` → `false`.
+- [x] `app/utils/random-code.ts` exporta `generateAlphanumericCode` y `ALPHANUMERIC_CHARS`. `generateAlphanumericCode(5)` siempre devuelve una cadena de 5 caracteres en `A–Z + 0–9`; `generateAlphanumericCode(0)` y `generateAlphanumericCode(-3)` devuelven `''`.
+- [x] `app/utils/slugify.ts` exporta `slugify` con el mismo comportamiento que la versión inline de `AddKidModal` (verificado con casos: "Diego Fernández" → `diego-fernandez`, "María José" → `maria-jose`, " Lucía " → `lucia`).
+- [x] `app/utils/avatar-colors.ts` exporta `AVATAR_COLOR_PALETTE` y `pickNextColor`. `pickNextColor([], () => '')` devuelve el color menos usado de la lista (que con input vacío es el primero de la paleta).
+- [x] En `/kids/[id]` para un niño con al menos un padre, el control "Vincular otro padre" es un `<button>` y al hacer click abre el modal con cabecera "Vincular padre", subtítulo "a {nombreCompleto}" y botón X a la derecha.
+- [x] El modal se monta en `document.body` vía `createPortal`; tiene `role="dialog"`, `aria-modal="true"` y `aria-labelledby="vincular-padre-title"`.
+- [x] El modal bloquea el scroll del body mientras está abierto y lo restaura al cerrarse; cierra con `Escape`, click en el backdrop y botón X; al cerrar, el foco vuelve al botón "Vincular otro padre".
+- [x] Al abrir, el foco se posa sobre el input "Nombre del padre/madre".
+- [x] El campo "Nombre del padre/madre" muestra placeholder "Ej. Diego Fernández" y es obligatorio.
+- [x] El campo "Email" muestra placeholder "correo@ejemplo.com", es obligatorio y rechaza con error "Ingresá un email válido." los valores inválidos según `isValidEmail`.
+- [x] El grupo "Parentesco" tiene tres botones pill (Mamá, Papá, Tutor/a), arranca sin selección, solo uno puede estar activo a la vez, es obligatorio y al enviar sin selección muestra "Este campo es obligatorio.".
+- [x] La caja "CÓDIGO DE INVITACIÓN" muestra un código alfanumérico de exactamente 5 caracteres en `A–Z + 0–9`, generado por `generateAlphanumericCode(5)`. El código no se regenera mientras el modal está abierto; sí se regenera al cerrar y volver a abrir.
+- [x] Bajo el código aparece el texto "Vence en 7 días".
+- [x] Al enviar con nombre vacío, email inválido o sin parentesco, aparecen mensajes inline de error rojos en los campos correspondientes y el modal permanece abierto.
+- [x] Al enviar con los tres campos válidos, el modal se cierra y el padre nuevo aparece al final del listado de `ParentsList` con badge `PENDIENTE`, avatar con la inicial del nombre y un color de la paleta compartida elegido por menor uso sobre `existingParents`.
+- [x] El padre nuevo tiene `status: 'pending'` y `role` exactamente igual al parentesco elegido ("Mamá", "Papá" o "Tutor/a").
+- [x] Si el `slugify(nombre)` ya existe en la lista actual de padres del niño, el `id` del nuevo padre lleva sufijo `-${timestamp}` (mismo patrón que SPEC 04).
+- [x] El padre nuevo se agrega solo al state local del wrapper cliente; no se modifica `app/lib/kids.ts` y al recargar la página desaparece.
+- [x] Después del refactor del paso 5 del plan, agregar un niño en `/kids` con el modal sigue produciendo un `Kid` con color de la paleta compartida e `id` con sufijo en caso de colisión (SPEC 04 sin regresiones).
+- [x] `/auth` al hacer click en "Iniciar sesión" con email inválido, aparece "Ingresá un email válido." inline y no se navega a `/`. Con email válido, navega a `/`. El campo email se prellena desde `?email=...` como antes.
+- [x] `/auth/active` al hacer click en "Activar mi cuenta" con email inválido, aparece "Ingresá un email válido." inline y no se navega. Con email válido, navega a `/auth?email={email}` como antes.
+- [x] `/auth/active` con el email prefijado (`lucia.fernandez@gmail.com`) sigue activando la cuenta y llegando a `/auth` con el query param.
+- [x] `npx tsc --noEmit`, `pnpm lint` y `pnpm build` finalizan sin errores.
 
 ## Decisiones tomadas y descartadas
 
@@ -255,3 +255,47 @@ const newParent: Parent = {
 - Reordenamiento de los padres en la lista (siempre se agrega al final).
 - Validación de la contraseña en `/auth` y `/auth/active` (solo se valida email).
 - Validación del código de invitación en `/auth/active` (sigue mockeado).
+
+## Resultados de verificación
+
+**Fecha de verificación:** 2026-08-19
+
+**Resumen:** 24/24 checks pasaron.
+
+### Verificación técnica
+
+- `npx tsc --noEmit`: ✅ sin errores.
+- `pnpm lint`: ✅ sin errores.
+- `pnpm build`: ✅ exit code 0, generó rutas estáticas y dinámicas correctamente.
+- Servidor de desarrollo `pnpm dev` responde en `http://localhost:3000`.
+
+### Verificación de utilidades
+
+- `app/utils/email.ts`: regex y `isValidEmail` validan correctamente los casos del spec.
+- `app/utils/random-code.ts`: `generateAlphanumericCode(5)` produce cadenas de 5 caracteres alfanuméricos; longitudes `<= 0` devuelven `''`.
+- `app/utils/slugify.ts`: produce `diego-fernandez`, `maria-jose`, `lucia` para los casos indicados.
+- `app/utils/avatar-colors.ts`: `pickNextColor([], () => '')` devuelve `#A9D9E8` (primer color de la paleta).
+
+### Verificación visual y funcional con Playwright
+
+- Ruta `/kids/mateo-fernandez`: el control "Vincular otro padre" es un `<button>` y abre el modal con título "Vincular padre", subtítulo "a Mateo Fernández" y botón X.
+- El modal se monta en `document.body` vía portal, con `role="dialog"`, `aria-modal="true"`, `aria-labelledby="vincular-padre-title"`.
+- Bloquea scroll (`body.style.overflow = 'hidden'`), cierra con `Escape`, click en backdrop y botón X; al cerrar, el foco retorna al botón "Vincular otro padre".
+- Al abrir, el foco está en el input `#parent-name` con placeholder "Ej. Diego Fernández".
+- Campo email con placeholder "correo@ejemplo.com" y validación inline.
+- Parentesco: tres pills, sin selección inicial, solo uno activo, error "Este campo es obligatorio." al enviar sin seleccionar.
+- Código de invitación: 5 caracteres alfanuméricos, visible con estilo Fredoka, no se regenera mientras está abierto, sí al reabrir; texto "Vence en 7 días" presente.
+- Envío con datos válidos (`Juan Pérez`, `juan.perez@example.com`, `Papá`) cierra el modal y agrega al final de la lista con badge `PENDIENTE`, inicial `J` y color `#A9D9E8` (menor uso sobre `existingParents`).
+- Recarga de página: el padre agregado desaparece (state local, sin persistencia en `app/lib/kids.ts`).
+- Refactor de `AddKidModal`: agregar `Ana García` produce id `ana-garcia` y color de la paleta; agregar otra `Ana García` produce id con sufijo `-${timestamp}`.
+
+### Verificación de auth
+
+- `/auth`: email inválido muestra "Ingresá un email válido." y no navega; email válido navega a `/`; query param `?email=...` precarga el campo.
+- `/auth/active`: email inválido muestra error y no navega; email `lucia.fernandez@gmail.com` navega a `/auth?email=lucia.fernandez%40gmail.com` y el campo se precarga.
+
+### Notas
+
+- No existe screenshot PNG de referencia para esta pantalla; la comparación visual se hizo contra `reference/pantallas/vincular-padre.dc.html`. La implementación coincide en estructura, tipografía, colores y disposición de elementos. La única diferencia intencional es que el spec define el grupo "Parentesco" sin selección inicial (el mock lo muestra con "Mamá" activo), lo cual es correcto según las decisiones del spec.
+- Context7 confirma que `searchParams` como `Promise` y `await` es el patrón correcto en Next.js 16; `app/auth/page.tsx` lo implementa así.
+- El patrón `useSyncExternalStore` para `useMounted` es una alternativa válida a `useState(null) + useEffect` para evitar problemas de hidratación en portales cliente.
