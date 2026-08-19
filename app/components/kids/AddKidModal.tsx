@@ -4,6 +4,8 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { AddKidForm, AddKidFormPayload } from '@/app/components/kids/AddKidForm';
 import type { Kid, Room } from '@/app/lib/kids';
+import { pickNextColor } from '@/app/utils/avatar-colors';
+import { slugify } from '@/app/utils/slugify';
 
 interface AddKidModalProps {
   open: boolean;
@@ -21,15 +23,6 @@ const useMounted = (): boolean => {
     () => false,
   );
 };
-
-const AVATAR_COLOR_PALETTE = [
-  '#A9D9E8',
-  '#A9C7E8',
-  '#F4B8CC',
-  '#B9DEC4',
-  '#F4DC8E',
-  '#C9B6E8',
-];
 
 const differenceInYears = (dateLeft: Date, dateRight: Date): number => {
   const years = dateLeft.getFullYear() - dateRight.getFullYear();
@@ -49,28 +42,6 @@ const formatLocalDate = (date: Date): string => {
   const day = String(date.getDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
-};
-
-const slugify = (text: string): string => {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-};
-
-const pickNextColor = (kids: Kid[]): string => {
-  const colorUsage = AVATAR_COLOR_PALETTE.map((color) => ({
-    color,
-    count: kids.filter(
-      (kid) => kid.color.toUpperCase() === color.toUpperCase(),
-    ).length,
-  }));
-
-  colorUsage.sort((a, b) => a.count - b.count);
-
-  return colorUsage[0].color;
 };
 
 interface BuildKidPayload {
@@ -122,7 +93,7 @@ const buildKid = (
     roomName: selectedRoom.name,
     enrollmentDate: formatLocalDate(today),
     initial: firstName.charAt(0).toUpperCase(),
-    color: pickNextColor(existingKids),
+    color: pickNextColor(existingKids, (kid) => kid.color),
     allergies: payload.allergies === '' ? undefined : payload.allergies,
     linkedParents: [],
   };

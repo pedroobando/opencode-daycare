@@ -2,10 +2,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CheckIcon, LogoIcon } from '@/app/components/icons';
+import { isValidEmail } from '@/app/utils/email';
 
 export default function AuthActivePage() {
+  const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [email, setEmail] = useState('lucia.fernandez@gmail.com');
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const handleActivate = () => {
+    const trimmedEmail = email.trim();
+
+    if (!isValidEmail(trimmedEmail)) {
+      setEmailError('Ingresá un email válido.');
+      return;
+    }
+
+    setEmailError(null);
+    router.push(`/auth?email=${encodeURIComponent(trimmedEmail)}`);
+  };
+
   return (
     <div className="w-full max-w-[440px]">
       <div className="mb-6 flex h-[58px] w-[58px] items-center justify-center rounded-[18px] bg-gradient-to-br from-[#F8C3A8] to-[#F2937A] shadow-[0_12px_26px_-10px_rgba(238,129,100,0.65)]">
@@ -60,9 +78,16 @@ export default function AuthActivePage() {
             id="email"
             name="email"
             type="email"
-            defaultValue="lucia.fernandez@gmail.com"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setEmailError(null);
+            }}
             className="w-full rounded-2xl border border-card-border bg-white px-4 py-3.5 text-foreground"
           />
+          {emailError && (
+            <p className="mt-1 text-[12.5px] text-[#D9583C]">{emailError}</p>
+          )}
         </div>
 
         <div>
@@ -102,15 +127,13 @@ export default function AuthActivePage() {
         </span>
       </button>
 
-      <Link
-        href={{
-          pathname: '/auth',
-          query: { email: 'lucia.fernandez@gmail.com' },
-        }}
+      <button
+        type="button"
+        onClick={handleActivate}
         className="mt-6 flex w-full items-center justify-center rounded-[15px] bg-gradient-to-b from-primary-gradient-start to-primary-gradient-end py-3.5 text-center text-base font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,0.7)]"
       >
         Activar mi cuenta
-      </Link>
+      </button>
 
       <p className="mt-6 text-center text-[14.5px] text-muted">
         ¿Ya tenés cuenta?{' '}

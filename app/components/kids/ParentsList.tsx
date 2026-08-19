@@ -6,6 +6,8 @@ import { PlusIcon } from '@/app/components/icons';
 
 interface ParentsListProps {
   parents: Parent[];
+  onRequestLinkParent: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
 
 const statusConfig = {
@@ -52,7 +54,11 @@ const ParentItem = ({ parent }: { parent: Parent }) => {
   );
 };
 
-export const ParentsList = ({ parents }: ParentsListProps) => {
+export const ParentsList = ({
+  parents,
+  onRequestLinkParent,
+  triggerRef,
+}: ParentsListProps) => {
   return (
     <div className="rounded-2xl border border-card-border bg-card p-4">
       <div className="mb-3.5 text-[12.5px] font-extrabold tracking-[0.8px] text-muted-dark">
@@ -64,9 +70,10 @@ export const ParentsList = ({ parents }: ParentsListProps) => {
           <ParentItem key={parent.id} parent={parent} />
         ))}
 
-        <a
-          href="#"
-          onClick={(event) => event.preventDefault()}
+        <button
+          type="button"
+          ref={triggerRef}
+          onClick={onRequestLinkParent}
           className="flex items-center gap-3 pt-2"
         >
           <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full border-[1.5px] border-dashed border-placeholder-border text-placeholder-text">
@@ -75,7 +82,7 @@ export const ParentsList = ({ parents }: ParentsListProps) => {
           <span className="text-[14.5px] font-extrabold text-accent-dark">
             Vincular otro padre
           </span>
-        </a>
+        </button>
       </div>
     </div>
   );
