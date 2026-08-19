@@ -75,18 +75,18 @@ export const LinkParentForm = ({
   };
 
   const inputBaseClasses =
-    'w-full rounded-[14px] border border-card-border bg-card px-4 py-[13px] text-[15px] text-foreground outline-none placeholder:text-placeholder-text';
+    'w-full rounded-[14px] border border-card-border bg-card px-4 py-[11px] text-[15px] text-foreground outline-none placeholder:text-placeholder-text';
 
   const labelClasses =
     'mb-2 block text-[12px] font-extrabold uppercase tracking-[0.7px] text-muted-light';
 
   return (
-    <div className="px-6 py-6">
+    <div className="px-5 py-5">
       <div aria-live="polite" className="sr-only">
         {Object.values(errors).some(Boolean) && 'Hay errores en el formulario.'}
       </div>
 
-      <div className="mb-[18px]">
+      <div className="mb-3">
         <label htmlFor="parent-name" className={labelClasses}>
           Nombre del padre/madre
         </label>
@@ -107,7 +107,7 @@ export const LinkParentForm = ({
         )}
       </div>
 
-      <div className="mb-[18px]">
+      <div className="mb-3">
         <label htmlFor="parent-email" className={labelClasses}>
           Email
         </label>
@@ -131,7 +131,7 @@ export const LinkParentForm = ({
         )}
       </div>
 
-      <div className="mb-[18px]">
+      <div className="mb-3">
         <div
           className={labelClasses}
           id="parent-role-label"
@@ -155,7 +155,7 @@ export const LinkParentForm = ({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => setRole(option)}
-                className={`flex-1 rounded-[14px] py-[13px] text-center text-[15px] font-extrabold transition-colors ${
+                className={`flex-1 rounded-[14px] py-[10px] text-center text-[15px] font-extrabold transition-colors ${
                   isSelected
                     ? 'border-[1.5px] border-[#9FB8EC] bg-[#CCD8F4] text-[#4E72C8]'
                     : 'border-[1.5px] border-card-border bg-[#FFFDF9] text-muted-light'
@@ -173,11 +173,11 @@ export const LinkParentForm = ({
         )}
       </div>
 
-      <div className="mb-[18px] rounded-[14px] border-[1.5px] border-dashed border-[#E6D08A] bg-[#FBF1D6] p-[18px] text-center">
+      <div className="mb-3 rounded-[14px] border-[1.5px] border-dashed border-[#E6D08A] bg-[#FBF1D6] p-3.5 text-center">
         <div className="mb-2 text-[12px] font-extrabold uppercase tracking-[0.7px] text-[#A88526]">
           Código de invitación
         </div>
-        <div className="font-display text-[34px] font-semibold tracking-[7px] text-[#8A7234]">
+        <div className="font-display text-[28px] font-semibold tracking-[6px] text-[#8A7234]">
           {invitationCode}
         </div>
         <div className="mt-1.5 text-[13px] text-[#A88526]">Vence en 7 días</div>
@@ -186,7 +186,7 @@ export const LinkParentForm = ({
       <button
         type="button"
         onClick={handleSubmit}
-        className="flex w-full items-center justify-center gap-2 rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] py-[13px] text-center text-[15.5px] font-extrabold text-white"
+        className="flex w-full items-center justify-center gap-2 rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] py-[11px] text-center text-[15.5px] font-extrabold text-white"
       >
         <SendIcon className="h-[18px] w-[18px]" />
         Enviar invitación
