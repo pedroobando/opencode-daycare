@@ -42,20 +42,30 @@ export const formatDateInput = (raw: string): string => {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 };
 
+export type ParsedDateResult =
+  | { status: 'ok'; date: Date }
+  | { status: 'invalid' }
+  | { status: 'future'; date: Date };
+
 /**
- * Parses a dd/mm/aaaa string into a local Date.
- * Returns null if the value is incomplete, contains non-numeric parts,
- * represents an invalid date (for example 31/02/2024), or is in the future.
+ * Parses a dd/mm/aaaa string into a discriminated result.
+ * - `{ status: 'invalid' }` when the value is empty, incomplete, contains
+ *   non-numeric parts, or does not represent a real calendar date
+ *   (for example 31/02/2024 or 13/20/2024).
+ * - `{ status: 'future', date }` when the value parses to a real date that
+ *   is later than today (local time).
+ * - `{ status: 'ok', date }` when the value parses to a real, non-future
+ *   date.
  */
-export const parseDateInput = (value: string): Date | null => {
+export const parseDateInput = (value: string): ParsedDateResult => {
   if (value.length !== 10) {
-    return null;
+    return { status: 'invalid' };
   }
 
   const [dayPart, monthPart, yearPart] = value.split('/');
 
   if (!dayPart || !monthPart || !yearPart) {
-    return null;
+    return { status: 'invalid' };
   }
 
   const day = parseInt(dayPart, 10);
@@ -71,7 +81,7 @@ export const parseDateInput = (value: string): Date | null => {
     day < 1 ||
     day > 31
   ) {
-    return null;
+    return { status: 'invalid' };
   }
 
   const date = new Date(year, month - 1, day);
@@ -81,17 +91,17 @@ export const parseDateInput = (value: string): Date | null => {
     date.getMonth() !== month - 1 ||
     date.getDate() !== day
   ) {
-    return null;
+    return { status: 'invalid' };
   }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   if (date.getTime() > today.getTime()) {
-    return null;
+    return { status: 'future', date };
   }
 
-  return date;
+  return { status: 'ok', date };
 };
 
 export const AddKidForm = ({
@@ -125,8 +135,10 @@ export const AddKidForm = ({
 
     const parsedBirthDate = parseDateInput(birthDateInput);
 
-    if (parsedBirthDate === null) {
+    if (parsedBirthDate.status === 'invalid') {
       nextErrors.birthDate = 'Este campo es obligatorio.';
+    } else if (parsedBirthDate.status === 'future') {
+      nextErrors.birthDate = 'La fecha no puede ser en el futuro.';
     }
 
     if (selectedRoomId === '') {
@@ -137,7 +149,7 @@ export const AddKidForm = ({
 
     if (
       trimmedFullName === '' ||
-      parsedBirthDate === null ||
+      parsedBirthDate.status !== 'ok' ||
       selectedRoomId === ''
     ) {
       return;
@@ -145,7 +157,7 @@ export const AddKidForm = ({
 
     onSubmit({
       fullName: trimmedFullName,
-      birthDate: parsedBirthDate,
+      birthDate: parsedBirthDate.date,
       roomId: selectedRoomId,
       allergies: allergies.trim(),
     });

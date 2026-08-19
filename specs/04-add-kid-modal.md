@@ -1,6 +1,6 @@
 # SPEC 04 — Modal "Agregar niño" en `/kids`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 02 — Listado y perfil de niños `/kids` y `/kids/[id]`
 > **Fecha:** 2026-08-19
 > **Objetivo:** Convertir el botón "Agregar niño" de `/kids` en un control modal que reproduce la pantalla `reference/pantallas/agregar-nino.dc.html`, valida nombre completo, fecha de nacimiento y sala como obligatorios (con máscara `dd/mm/aaaa` y `<select>` poblado desde `app/lib/kids.ts`), y al guardar inserta al niño nuevo en el listado local de `/kids`.
@@ -100,19 +100,19 @@ Detalles del modelo:
 
 ## Criterios de aceptación
 
-- [ ] En `/kids`, el control "Agregar niño" es un `<button>` y al hacer click abre el modal con la cabecera "Cancelar / Agregar niño / Guardar" y los cuatro grupos de campos del mock.
-- [ ] El modal se monta en `document.body` vía portal.
-- [ ] El modal bloquea el scroll del body mientras está abierto y restaura el scroll al cerrarse.
-- [ ] Al abrir, el foco se posa sobre el input "Nombre completo"; al cerrar (por cualquier vía), el foco vuelve al botón "Agregar niño".
-- [ ] La tecla `Escape`, el click en el backdrop y el botón "Cancelar" cierran el modal descartando los cambios sin pedir confirmación.
-- [ ] Al volver a abrir el modal después de cerrarlo, todos los campos aparecen vacíos y sin errores.
-- [ ] El campo "Fecha de nacimiento" inserta automáticamente `/` después del día y del mes, limita la entrada a 10 caracteres y rechaza caracteres no numéricos.
-- [ ] El campo "Sala" es un `<select>` con dos opciones (`Sala Soles`, `Sala Lunas`) tomadas de `app/lib/kids.ts` y se muestra con el chevron del nuevo `ChevronDownIcon`.
-- [ ] Al hacer click en "Guardar" con `Nombre completo`, `Fecha de nacimiento` o `Sala` vacíos o inválidos, aparecen mensajes inline rojos debajo del campo correspondiente y el modal permanece abierto.
-- [ ] Una fecha como `31/02/2024` o `13/20/2024` se considera inválida y muestra el mensaje inline; una fecha futura también.
-- [ ] Al guardar con los tres campos obligatorios válidos, el modal se cierra y el niño nuevo aparece al principio de la lista correspondiente a su sala en `/kids`, con avatar (inicial y color), nombre, edad calculada y sin badge de alergia ni padres vinculados.
-- [ ] Si el niño nuevo tiene alergias, el badge "ALERGIA" aparece en su tarjeta siguiendo el patrón visual de las tarjetas existentes.
-- [ ] `npx tsc --noEmit`, `pnpm lint` y `pnpm build` finalizan sin errores.
+- [x] En `/kids`, el control "Agregar niño" es un `<button>` y al hacer click abre el modal con la cabecera "Cancelar / Agregar niño / Guardar" y los cuatro grupos de campos del mock. _Verificado en `app/kids/page.tsx`; screenshot `.playwright-mcp/add-kid-modal-open.png` muestra la cabecera y los cuatro campos._
+- [x] El modal se monta en `document.body` vía portal. _Verificado con `playwright_browser_evaluate`: `document.querySelector('[role="dialog"]')` existe y su `parentElement` es `document.body`._
+- [x] El modal bloquea el scroll del body mientras está abierto y restaura el scroll al cerrarse. _Abierto: `getComputedStyle(document.body).overflow === 'hidden'`; cerrado: `'visible'`._
+- [x] Al abrir, el foco se posa sobre el input "Nombre completo"; al cerrar (por cualquier vía), el foco vuelve al botón "Agregar niño". _Abierto: `document.activeElement.id === 'full-name'`; cerrado por Escape, backdrop y Cancelar: `document.activeElement.textContent === 'Agregar niño'`._
+- [x] La tecla `Escape`, el click en el backdrop y el botón "Cancelar" cierran el modal descartando los cambios sin pedir confirmación. _Verificado interactivamente con Playwright; en todos los casos el diálogo desaparece sin confirmación._
+- [x] Al volver a abrir el modal después de cerrarlo, todos los campos aparecen vacíos y sin errores. _Verificado tras reabrir tras cancelar y tras guardar: todos los inputs y errores están limpios. Nota: el reset se logra por desmontaje del portal, no por un `useEffect` de reset en `AddKidForm`._
+- [x] El campo "Fecha de nacimiento" inserta automáticamente `/` después del día y del mes, limita la entrada a 10 caracteres y rechaza caracteres no numéricos. _Tipear `31022024` produce `31/02/2024`; tipear `abc` produce cadena vacía._
+- [x] El campo "Sala" es un `<select>` con dos opciones (`Sala Soles`, `Sala Lunas`) tomadas de `app/lib/kids.ts` y se muestra con el chevron del nuevo `ChevronDownIcon`. _Verificado: options `[{value:'',text:'Seleccionar'},{value:'soles',text:'Sala Soles'},{value:'lunas',text:'Sala Lunas'}]`; el SVG de `ChevronDownIcon` está presente._
+- [x] Al hacer click en "Guardar" con `Nombre completo`, `Fecha de nacimiento` o `Sala` vacíos o inválidos, aparecen mensajes inline rojos debajo del campo correspondiente y el modal permanece abierto. _Submit vacío muestra tres errores rojos, `aria-invalid="true"`, región `aria-live="polite"`, y el diálogo permanece abierto._
+- [x] Una fecha como `31/02/2024` o `13/20/2024` se considera inválida y muestra "Este campo es obligatorio."; una fecha futura real como `31/12/2030` muestra "La fecha no puede ser en el futuro.". `parseDateInput` ahora devuelve un resultado discriminado `{ status: 'ok' | 'invalid' | 'future' }` y `handleSubmit` elige el mensaje correspondiente (`app/components/kids/AddKidForm.tsx`). Verificado con Playwright sobre el dev server.
+- [x] Al guardar con los tres campos obligatorios válidos, el modal se cierra y el niño nuevo aparece al principio de la lista correspondiente a su sala en `/kids`, con avatar (inicial y color), nombre, edad calculada y sin badge de alergia ni padres vinculados. _Guardado "Nuevo Niño Test" en Sala Lunas apareció primero con inicial N, edad 6 años, sin alergia y sin padres._
+- [x] Si el niño nuevo tiene alergias, el badge "ALERGIA" aparece en su tarjeta siguiendo el patrón visual de las tarjetas existentes. _Guardado "Alergico Test" con alergias "Polen, Maní" mostró el badge con el texto de la alergia ("POLEN,"), igual que las tarjetas existentes (p. ej. "MANÍ", "LACTOSA"). El spec menciona literalmente "ALERGIA" pero el patrón real del proyecto usa el texto de la alergia._
+- [x] `npx tsc --noEmit`, `pnpm lint` y `pnpm build` finalizan sin errores. _Lint: exit 0; tsc: sin salida (exit 0); build: exit 0._
 
 ## Decisiones tomadas y descartadas
 
@@ -168,4 +168,26 @@ Detalles del modelo:
 
 ## Resultados de verificación
 
-_(Se completa al implementar.)_
+- **Fecha de verificación:** 2026-08-19
+- **Veredicto general:** PASS (13/13 criterios pasan)
+- **Checks técnicos (re-verificados tras el fix):**
+  - `pnpm lint`: exit 0, sin errores.
+  - `npx tsc --noEmit`: exit 0, sin errores.
+  - `pnpm build`: exit 0, build exitosa.
+- **Criterios que pasan:** 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13.
+- **Notas por criterio:**
+  - **Criterio 10 (corregido):** `parseDateInput` en `app/components/kids/AddKidForm.tsx` ahora devuelve `{ status: 'ok' | 'invalid' | 'future' }`; `handleSubmit` distingue los tres casos y muestra el mensaje correcto:
+    - Fecha vacía, incompleta, con caracteres no numéricos o imposible (p. ej. `31/02/2024`, `13/20/2024`): "Este campo es obligatorio.".
+    - Fecha real pero futura (p. ej. `31/12/2030`): "La fecha no puede ser en el futuro.".
+    - Fecha real y no futura: el submit continúa.
+    Verificado con Playwright contra `http://localhost:3000/kids`.
+  - **Criterio 6 (nota):** el reset funciona porque `AddKidModal` desmonta el portal al cerrarse, no porque `AddKidForm` ejecute un `useEffect` de reset al recibir `open === true`. El resultado observable cumple el criterio.
+  - **Criterio 12 (nota):** el badge muestra el texto de la alergia (p. ej. "POLEN,"), igual que las tarjetas existentes; el spec lo redacta como "ALERGIA" pero el patrón visual del proyecto es mostrar la alergia concreta.
+- **Screenshots guardados:**
+  - `.playwright-mcp/kids-listing.png`
+  - `.playwright-mcp/add-kid-modal-open.png`
+  - `.playwright-mcp/add-kid-validation-errors.png`
+  - `.playwright-mcp/kids-listing-after-add.png`
+  - `.playwright-mcp/kids-listing-with-allergy.png`
+- **Follow-ups:**
+  - (Resuelto) Distinguir fechas futuras de inválidas en `parseDateInput` y mostrar "La fecha no puede ser en el futuro.".
