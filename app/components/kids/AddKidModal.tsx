@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { AddKidForm, AddKidFormPayload } from '@/app/components/kids/AddKidForm';
 import type { Kid, Room } from '@/app/lib/kids';
@@ -13,6 +13,14 @@ interface AddKidModalProps {
   onAddKid: (kid: Kid) => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
+
+const useMounted = (): boolean => {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+};
 
 const AVATAR_COLOR_PALETTE = [
   '#A9D9E8',
@@ -128,13 +136,9 @@ export const AddKidModal = ({
   onAddKid,
   triggerRef,
 }: AddKidModalProps) => {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const cardRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<Element | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!open) {

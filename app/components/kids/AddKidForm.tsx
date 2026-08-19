@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronDownIcon } from '@/app/components/icons';
 import type { Room } from '@/app/lib/kids';
 
@@ -107,16 +107,9 @@ export const AddKidForm = ({
   const [medicalNotes, setMedicalNotes] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
 
-  useEffect(() => {
-    if (open) {
-      setFullName('');
-      setBirthDateInput('');
-      setSelectedRoomId('');
-      setAllergies('');
-      setMedicalNotes('');
-      setErrors({});
-    }
-  }, [open]);
+  if (!open) {
+    return null;
+  }
 
   const handleBirthDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setBirthDateInput(formatDateInput(event.target.value));
