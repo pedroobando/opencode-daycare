@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Sidebar } from '@/app/components/feed/Sidebar';
 import { MobileDrawer } from '@/app/components/feed/MobileDrawer';
 import { PlusIcon } from '@/app/components/icons';
 import { SearchInput } from '@/app/components/kids/SearchInput';
 import { RoomDivider } from '@/app/components/kids/RoomDivider';
 import { KidCard } from '@/app/components/kids/KidCard';
+import { AddKidModal } from '@/app/components/kids/AddKidModal';
 import { rooms, kids } from '@/app/lib/kids';
+import type { Kid } from '@/app/lib/kids';
 
 const normalize = (text: string): string => {
   return text
@@ -18,19 +20,22 @@ const normalize = (text: string): string => {
 
 export default function KidsPage() {
   const [query, setQuery] = useState('');
+  const [kidsList, setKidsList] = useState<Kid[]>(kids);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const triggerButtonRef = useRef<HTMLButtonElement>(null);
 
   const normalizedQuery = normalize(query.trim());
 
   const filteredKids = useMemo(() => {
     if (normalizedQuery === '') {
-      return kids;
+      return kidsList;
     }
 
-    return kids.filter((kid) => {
+    return kidsList.filter((kid) => {
       const fullName = normalize(`${kid.firstName} ${kid.lastName}`);
       return fullName.includes(normalizedQuery);
     });
-  }, [normalizedQuery]);
+  }, [normalizedQuery, kidsList]);
 
   const kidsByRoom = useMemo(() => {
     return rooms.map((room) => ({
@@ -58,14 +63,15 @@ export default function KidsPage() {
                 Niños
               </h1>
             </div>
-            <a
-              href="#"
-              onClick={(event) => event.preventDefault()}
+            <button
+              type="button"
+              ref={triggerButtonRef}
+              onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-primary-gradient-start to-primary-gradient-end px-[18px] py-[11px] text-center text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.7)]"
             >
               <PlusIcon className="h-[17px] w-[17px]" />
               Agregar niño
-            </a>
+            </button>
           </div>
 
           <div className="mb-5">
@@ -94,6 +100,15 @@ export default function KidsPage() {
                 </section>
               ),
           )}
+
+          <AddKidModal
+            open={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            rooms={rooms}
+            existingKids={kidsList}
+            onAddKid={(kid) => setKidsList((prev) => [kid, ...prev])}
+            triggerRef={triggerButtonRef}
+          />
         </div>
       </main>
     </div>
