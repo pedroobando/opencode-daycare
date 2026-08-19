@@ -1,6 +1,6 @@
 # SPEC 03 — Pantallas de autenticación `/auth` y `/auth/active`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01 — Feed como home `/`
 > **Fecha:** 2026-08-19
 > **Objetivo:** Implementar las pantallas de login y activación de cuenta de OpenDayCare en `/auth` y `/auth/active` con un layout compartido de dos columnas (panel naranja fijo a la izquierda + contenido a la derecha), sin autenticación real ni base de datos.
@@ -59,20 +59,20 @@ Esta feature no introduce nuevas estructuras de datos. No hay estado, ni persist
 
 ## Criterios de aceptación
 
-- [ ] `pnpm dev` levanta sin errores.
-- [ ] `http://localhost:3000/auth` muestra la pantalla de login con el panel naranja a la izquierda.
-- [ ] `http://localhost:3000/auth/active` muestra la pantalla de activar cuenta con el panel naranja a la izquierda.
-- [ ] El panel naranja contiene el logo, el claim y "🌿 Guardería Sala Soles" en ambas rutas.
-- [ ] `/auth` **no** muestra los botones "Personal" / "Familia" del mock.
-- [ ] `/auth` tiene título "Iniciar sesión", inputs email (vacío por defecto, con placeholder de ejemplo) y password, link "¿Olvidaste tu contraseña?" (`#`), botón "Iniciar sesión" (`/`) y link "Activá tu cuenta" (`/auth/active`).
-- [ ] Navegar a `/auth?email=lucia.fernandez@gmail.com` muestra el input email prellenado con ese valor.
-- [ ] `/auth/active` tiene el icono de marca, título "Bienvenida a OpenDayCare", subtítulo, tarjeta de invitación (Mateo · Sala Soles), inputs código, email y contraseña prellenados, checkbox de autorización marcado, botón "Activar mi cuenta" y link "Iniciar sesión".
-- [ ] Al hacer click en "Activar mi cuenta" se navega a `/auth?email=lucia.fernandez@gmail.com` y el input email aparece prellenado.
-- [ ] El sidebar del feed (SPEC 01) no aparece en `/auth` ni en `/auth/active`.
-- [ ] En mobile (viewport < 768px) el panel naranja se oculta y el contenido ocupa todo el ancho sin perder la usabilidad del formulario.
-- [ ] `npx tsc --noEmit` no reporta errores.
-- [ ] `pnpm lint` no reporta errores.
-- [ ] `pnpm build` finaliza exitosamente.
+- [x] `pnpm dev` levanta sin errores.
+- [x] `http://localhost:3000/auth` muestra la pantalla de login con el panel naranja a la izquierda.
+- [x] `http://localhost:3000/auth/active` muestra la pantalla de activar cuenta con el panel naranja a la izquierda.
+- [x] El panel naranja contiene el logo, el claim y "🌿 Guardería Sala Soles" en ambas rutas.
+- [x] `/auth` **no** muestra los botones "Personal" / "Familia" del mock.
+- [x] `/auth` tiene título "Iniciar sesión", inputs email (vacío por defecto, con placeholder de ejemplo) y password, link "¿Olvidaste tu contraseña?" (`#`), botón "Iniciar sesión" (`/`) y link "Activá tu cuenta" (`/auth/active`).
+- [x] Navegar a `/auth?email=lucia.fernandez@gmail.com` muestra el input email prellenado con ese valor.
+- [x] `/auth/active` tiene el icono de marca, título "Bienvenida a OpenDayCare", subtítulo, tarjeta de invitación (Mateo · Sala Soles), inputs código, email y contraseña prellenados, checkbox de autorización marcado, botón "Activar mi cuenta" y link "Iniciar sesión".
+- [x] Al hacer click en "Activar mi cuenta" se navega a `/auth?email=lucia.fernandez@gmail.com` y el input email aparece prellenado.
+- [x] El sidebar del feed (SPEC 01) no aparece en `/auth` ni en `/auth/active`.
+- [x] En mobile (viewport < 768px) el panel naranja se oculta y el contenido ocupa todo el ancho sin perder la usabilidad del formulario.
+- [x] `npx tsc --noEmit` no reporta errores.
+- [x] `pnpm lint` no reporta errores.
+- [x] `pnpm build` finaliza exitosamente.
 
 ## Decisiones tomadas y descartadas
 
@@ -125,3 +125,31 @@ Esta feature no introduce nuevas estructuras de datos. No hay estado, ni persist
 - Sincronización del email en `/auth/active` con el link "Activar mi cuenta" (es estático por ahora).
 
 Cada uno de estos, si llega, irá en su propio spec.
+
+## Resultados de verificación
+
+**Fecha:** 2026-08-19
+
+**Resumen:** 14/14 criterios pasaron.
+
+| # | Criterio | Estado | Notas |
+|---|----------|--------|-------|
+| 1 | `pnpm dev` levanta sin errores | ✅ | Servidor responde 200 en `http://localhost:3000/auth`. |
+| 2 | `/auth` muestra login con panel naranja | ✅ | Layout de dos columnas visible en desktop. |
+| 3 | `/auth/active` muestra activación con panel naranja | ✅ | Panel compartido presente (decisión del spec). |
+| 4 | Panel naranja contiene logo, claim y "🌿 Guardería Sala Soles" | ✅ | En ambas rutas. |
+| 5 | `/auth` no muestra selector de rol | ✅ | No hay botones "Personal" / "Familia". |
+| 6 | `/auth` tiene título, inputs, links y botón | ✅ | Email vacío por defecto con placeholder de ejemplo. |
+| 7 | `/auth?email=...` prellena el email | ✅ | `lucia.fernandez@gmail.com` aparece en el input. |
+| 8 | `/auth/active` tiene todos los elementos requeridos | ✅ | Icono, tarjeta Mateo · Sala Soles, inputs prellenados, checkbox marcado, botón y link. |
+| 9 | Click en "Activar mi cuenta" navega a `/auth?email=...` | ✅ | Email prellenado tras la navegación. |
+| 10 | Sidebar del feed no aparece en `/auth` ni `/auth/active` | ✅ | Solo se ve el panel naranja de auth. |
+| 11 | Mobile oculta el panel naranja | ✅ | Viewport 375×667: formulario usa todo el ancho. |
+| 12 | `npx tsc --noEmit` | ✅ | Sin errores. |
+| 13 | `pnpm lint` | ✅ | Sin errores. |
+| 14 | `pnpm build` | ✅ | Finaliza exitosamente (`next build`). |
+
+**Notas adicionales:**
+- No existen screenshots PNG de auth en `reference/screenshots/`; la comparación visual se hizo contra los mocks HTML `reference/pantallas/login.dc.html` y `reference/pantallas/activar-cuenta.dc.html`.
+- La implementación sigue las decisiones del spec y omite intencionalmente el selector de rol del mock de login.
+- El mock `activar-cuenta.dc.html` muestra la pantalla de activación centrada sin panel naranja, mientras que la implementación usa el layout compartido con panel a la izquierda según lo especificado en este documento.
