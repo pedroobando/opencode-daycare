@@ -20,5 +20,21 @@
       },
       "enabled": true
     }
+  },
+  "permission": {
+    "external_directory": {
+      "/tmp/**": "allow"
+    },
+    "bash": {
+      "*": "allow",
+      "rm *": "deny",
+      "rmdir *": "deny",
+      "dd *": "deny",
+      "shutdown *": "deny",
+      "reboot *": "deny",
+      "halt *": "deny",
+      "poweroff *": "deny",
+      "mkfs *": "deny"
+    }
   }
 }
