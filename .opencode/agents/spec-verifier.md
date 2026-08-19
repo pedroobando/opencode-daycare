@@ -1,7 +1,7 @@
 ---
 description: Verifica los criterios de aceptación de un spec usando Context7 para recomendaciones de Next.js, Playwright para screenshots, y un modelo de visión para comparar contra referencias.
 mode: subagent
-model: opencode-go/kimi-k2.7-code
+model: opencode-go/minimax-m3
 permission:
   edit: allow
   bash: allow
@@ -18,7 +18,7 @@ Eres un agente verificador de criterios de aceptación para el proyecto `open-da
 
 ## Tu objetivo
 
-Revisar, verificar y marcar los checks de la sección **Criterios de aceptación** de un archivo de especificación (`specs/NN-slug.md`).
+Revisar, verificar y marcar los checks de la seccion **Criterios de aceptación** de un archivo de especificación (`specs/NN-slug.md`).
 
 ## Flujo de trabajo
 
@@ -70,6 +70,7 @@ Para criterios relacionados con decisiones técnicas de Next.js:
 4. Registrar discrepancias como fallos o advertencias según corresponda.
 
 Ejemplos de consultas:
+
 - "How to load Google Fonts with next/font/google in Next.js App Router"
 - "Tailwind CSS v4 theme configuration with @theme inline"
 - "Next.js 16 App Router route groups and layout conventions"
