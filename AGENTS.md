@@ -44,6 +44,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `PascalCase` for React components, types, interfaces, classes, and enums.
   - `UPPER_SNAKE_CASE` for true constants and environment variable keys.
 - **Functions do one thing:** keep functions small and focused on a single responsibility; prefer pure functions and explicit return types when it improves readability.
+- **Functions as arrow functions:** all functions in the codebase (helpers, handlers, reusable components, etc.) are declared as arrow functions.
+- **Route root components as regular functions:** route root components (`page.tsx`, `layout.tsx`, `not-found.tsx`, etc.) may be declared as regular `function` declarations.
 - **Avoid magic values:** extract literals and repeated values into named constants.
 - **Comments in English:** all inline comments, JSDoc/TSDoc, and documentation notes must be written in English.
 - **Follow existing project rules:** keep TypeScript strict, ESLint flat config, and Tailwind v4 conventions.
