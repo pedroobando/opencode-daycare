@@ -243,27 +243,27 @@ Notas:
 
 ## Criterios de aceptación
 
-- [ ] El control "Nueva publicación" en el sidebar (desktop y mobile) es un `<button>` y al hacer click abre el modal con cabecera "Cancelar / Nueva publicación / Publicar".
-- [ ] El modal se monta en `document.body` vía `createPortal`; tiene `role="dialog"`, `aria-modal="true"` y `aria-labelledby="create-post-title"`.
-- [ ] El modal bloquea el scroll del body mientras está abierto y lo restaura al cerrarse; cierra con `Escape`, click en el backdrop y botón "Cancelar"; al cerrar, el foco vuelve al botón "Nueva publicación".
-- [ ] El modal mide `max-w-[560px]` (compacto) y se ve correctamente en viewports de tablet (≥640px).
-- [ ] La sección PARA lista los 16 niños de `app/lib/kids.ts` ordenados alfabéticamente por `firstName` (con soporte de tildes), cada uno como pill con su avatar (color de fondo `kid.color`, inicial) y nombre, más una pill final "Toda la sala".
-- [ ] Click en "Toda la sala" (estado inactivo): los 16 niños quedan visualmente activos y la pill "Toda la sala" queda activa. `isAllRoom` se vuelve `true` y `selectedKidIds` contiene los 16 ids.
-- [ ] Click en "Toda la sala" (estado activo): todos los niños quedan visualmente inactivos y la pill "Toda la sala" queda inactiva. `isAllRoom` se vuelve `false` y `selectedKidIds` queda vacío.
-- [ ] Click en un niño con `isAllRoom = true`: la pill "Toda la sala" se desactiva, ese niño se deselecciona (queda inactivo) y los otros 15 niños quedan seleccionados (visualmente activos). `isAllRoom` pasa a `false`.
-- [ ] Click en un niño con `isAllRoom = false` y `selectedKidIds` vacío: ese niño se selecciona (visualmente activo).
-- [ ] Click en un niño con `isAllRoom = false` y `selectedKidIds` con otros niños: solo toggle de ese niño.
-- [ ] Si el usuario marca los 16 niños manualmente (sin presionar "Toda la sala"), la pill "Toda la sala" se ve activa (visual derivado de `selectedKidIds.size === kids.length`).
-- [ ] La sección TIPO muestra exactamente 7 botones pill (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio), single-select, con los colores del mock.
-- [ ] El textarea DESCRIPCIÓN tiene placeholder "Contá cómo le fue hoy…" y permite múltiples líneas (`resize-y`).
-- [ ] El bloque FOTOS arranca con 1 tile placeholder + 1 tile "Agregar" (dashed). Click en "Agregar" agrega una nueva tile "Agregar" idéntica. `photoCount` se adjunta al post al publicar.
-- [ ] Al hacer click en "Publicar" sin destinatario, sin tipo o sin descripción, aparecen mensajes inline rojos en los grupos correspondientes (`aria-invalid="true"`, `aria-live="polite"`) y el modal permanece abierto.
-- [ ] Al publicar con un destinatario (uno o más niños, "Toda la sala", o los 16 manualmente), un tipo y una descripción, el modal se cierra y el post nuevo aparece al principio del feed (sobre `post-1`, `post-2`, `post-3`).
-- [ ] El post nuevo se renderiza en `PostCard.tsx` con el badge correcto del tipo (incluyendo los 4 nuevos), avatar del primer niño seleccionado (o megaphone si tipo es `announcement`, o "C" coral si `isAllRoom` y tipo ≠ announcement), `recipientLabel` correcto ("familia de X", "familia de X e Y", "familia de X, Y y Z", o "toda la sala"), `time` en formato `HH:mm` local, `publishedBy: "publicado por vos"`, `likes: 0`, `comments: 0`, y `photos` solo si el contador fue >0.
-- [ ] Tras publicar, la lista del feed local refleja el cambio (state local del wrapper); al recargar la página, el post nuevo desaparece y la lista vuelve a los 3 originales.
-- [ ] El post existente `post-2` (tipo `activity`) ahora se renderiza con badge azul fuerte (#2E89A6 bg, texto blanco) — side effect intencional del cambio de CSS vars.
-- [ ] El texto del avatar en `PostCard` usa `getAvatarTextColor` y tiene contraste correcto contra el color de fondo (incluso con el coral de Caro).
-- [ ] `npx tsc --noEmit`, `pnpm lint` y `pnpm build` finalizan sin errores.
+- [x] El control "Nueva publicación" en el sidebar (desktop y mobile) es un `<button>` y al hacer click abre el modal con cabecera "Cancelar / Nueva publicación / Publicar".
+- [x] El modal se monta en `document.body` vía `createPortal`; tiene `role="dialog"`, `aria-modal="true"` y `aria-labelledby="create-post-title"`.
+- [x] El modal bloquea el scroll del body mientras está abierto y lo restaura al cerrarse; cierra con `Escape`, click en el backdrop y botón "Cancelar"; al cerrar, el foco vuelve al botón "Nueva publicación".
+- [x] El modal mide `max-w-[560px]` (compacto) y se ve correctamente en viewports de tablet (≥640px).
+- [x] La sección PARA lista los 16 niños de `app/lib/kids.ts` ordenados alfabéticamente por `firstName` (con soporte de tildes), cada uno como pill con su avatar (color de fondo `kid.color`, inicial) y nombre, más una pill final "Toda la sala".
+- [x] Click en "Toda la sala" (estado inactivo): los 16 niños quedan visualmente activos y la pill "Toda la sala" queda activa. `isAllRoom` se vuelve `true` y `selectedKidIds` contiene los 16 ids.
+- [x] Click en "Toda la sala" (estado activo): todos los niños quedan visualmente inactivos y la pill "Toda la sala" queda inactiva. `isAllRoom` se vuelve `false` y `selectedKidIds` queda vacío.
+- [x] Click en un niño con `isAllRoom = true`: la pill "Toda la sala" se desactiva, ese niño se deselecciona (queda inactivo) y los otros 15 niños quedan seleccionados (visualmente activos). `isAllRoom` pasa a `false`.
+- [x] Click en un niño con `isAllRoom = false` y `selectedKidIds` vacío: ese niño se selecciona (visualmente activo).
+- [x] Click en un niño con `isAllRoom = false` y `selectedKidIds` con otros niños: solo toggle de ese niño.
+- [x] Si el usuario marca los 16 niños manualmente (sin presionar "Toda la sala"), la pill "Toda la sala" se ve activa (visual derivado de `selectedKidIds.size === kids.length`).
+- [x] La sección TIPO muestra exactamente 7 botones pill (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio), single-select, con los colores del mock.
+- [x] El textarea DESCRIPCIÓN tiene placeholder "Contá cómo le fue hoy…" y permite múltiples líneas (`resize-y`).
+- [x] El bloque FOTOS arranca con 1 tile placeholder + 1 tile "Agregar" (dashed). Click en "Agregar" agrega una nueva tile "Agregar" idéntica. `photoCount` se adjunta al post al publicar.
+- [x] Al hacer click en "Publicar" sin destinatario, sin tipo o sin descripción, aparecen mensajes inline rojos en los grupos correspondientes (`aria-invalid="true"`, `aria-live="polite"`) y el modal permanece abierto.
+- [x] Al publicar con un destinatario (uno o más niños, "Toda la sala", o los 16 manualmente), un tipo y una descripción, el modal se cierra y el post nuevo aparece al principio del feed (sobre `post-1`, `post-2`, `post-3`).
+- [x] El post nuevo se renderiza en `PostCard.tsx` con el badge correcto del tipo (incluyendo los 4 nuevos), avatar del primer niño seleccionado (o megaphone si tipo es `announcement`, o "C" coral si `isAllRoom` y tipo ≠ announcement), `recipientLabel` correcto ("familia de X", "familia de X e Y", "familia de X, Y y Z", o "toda la sala"), `time` en formato `HH:mm` local, `publishedBy: "publicado por vos"`, `likes: 0`, `comments: 0`, y `photos` solo si el contador fue >0.
+- [x] Tras publicar, la lista del feed local refleja el cambio (state local del wrapper); al recargar la página, el post nuevo desaparece y la lista vuelve a los 3 originales.
+- [x] El post existente `post-2` (tipo `activity`) ahora se renderiza con badge azul fuerte (#2E89A6 bg, texto blanco) — side effect intencional del cambio de CSS vars.
+- [x] El texto del avatar en `PostCard` usa `getAvatarTextColor` y tiene contraste correcto contra el color de fondo (incluso con el coral de Caro).
+- [x] `npx tsc --noEmit`, `pnpm lint` y `pnpm build` finalizan sin errores.
 
 ## Decisiones tomadas y descartadas
 
@@ -340,3 +340,46 @@ Notas:
 - Tests automatizados (mismo criterio que SPEC 02/03/04/05).
 
 Cada uno de estos, si llega, irá en su propio spec.
+
+## Resultados de verificación
+
+- **Fecha de verificación:** 2026-08-19
+- **Estado:** Implementado / Aprobado
+- **Resumen:** 21/21 criterios de aceptación verificados exitosamente.
+
+### Notas por criterio
+
+1. **Control "Nueva publicación" como `<button>`:** Verificado en `app/components/feed/Sidebar.tsx` (líneas 82-90) y mediante Playwright en desktop y mobile drawer. Abre el modal con cabecera "Cancelar / Nueva publicación / Publicar".
+2. **Portal y atributos ARIA:** Verificado con Playwright `evaluate`: `role="dialog"`, `aria-modal="true"`, `aria-labelledby="create-post-title"`, montado en `document.body`.
+3. **Scroll lock y cierre:** `document.body.style.overflow = 'hidden'` al abrir, `''` al cerrar. Cierra con Escape, backdrop click y "Cancelar". El foco retorna al botón "Nueva publicación" en los tres casos.
+4. **Tamaño compacto:** `max-width: 560px` y ancho real de 560px en viewport 1280x720. Se visualiza correctamente en tablet/desktop.
+5. **Sección PARA ordenada:** Los 16 niños se listan alfabéticamente por `firstName` con `localeCompare(..., 'es')`: Antonia, Benjamín, Catalina, Emma, Felipe, Isabella, Julieta, Lucas, Mateo, Maximiliano, Olivia, Sebastián, Sofía, Tomás, Valentina, Vicente. Cada pill muestra avatar con `kid.color` e inicial.
+6-11. **Comportamiento de selección "Toda la sala" y pills de niños:** Verificado mediante interacciones en Playwright. El estado derivado `showAllRoomHighlight` y `isKidActive` se comporta según el spec.
+12. **Sección TIPO:** 7 pills (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio), single-select, colores coincidentes con `reference/pantallas/crear-publicacion.dc.html`.
+13. **Textarea DESCRIPCIÓN:** Placeholder correcto y `resize-y`.
+14. **Bloque FOTOS:** Placeholder + tile "Agregar" dashed; click incrementa contador y agrega tiles idénticas.
+15. **Validación inline:** Al publicar vacío aparecen los tres mensajes de error en rojo; los grupos tienen `aria-invalid="true"` y existe contenedor `aria-live="polite"`.
+16-17. **Publicación y renderizado del post:** Verificado publicando posts con: un niño (Mateo, tipo Logro), "Toda la sala" + Anuncio (avatar megaphone), "Toda la sala" + Comida (avatar "C" coral), y dos niños (Mateo y Sofía, label "familia de Mateo y Sofía"). El nuevo post aparece primero con `time` local, `publishedBy: "publicado por vos"`, likes/comments en 0.
+18. **Persistencia local:** Al recargar el navegador el post nuevo desaparece y el feed vuelve a los 3 posts originales.
+19. **Color `activity` actualizado:** `post-2` renderiza badge ACTIVIDAD con fondo #2E89A6 y texto blanco.
+20. **Contraste de avatar:** Verificado con `getComputedStyle`; Mateo usa texto #1F7A93 sobre #A9D9E8; Caro (coral) usa texto blanco sobre #F2937A.
+21. **Checks técnicos:** `npx tsc --noEmit` (sin output), `pnpm lint` (sin errores), `pnpm build` (exit 0), y `pnpm dev` responde en `http://localhost:3000`.
+
+### Referencias consultadas
+- Context7: Next.js `/vercel/next.js` — uso de `useSyncExternalStore` para evitar hydration mismatch en portales.
+- Context7: Tailwind CSS `/tailwindlabs/tailwindcss.com` — configuración v4 con `@theme inline` y variables CSS.
+
+### Screenshots generados
+- `.playwright-mcp/06-feed-desktop.png`
+- `.playwright-mcp/06-modal-desktop.png`
+- `.playwright-mcp/06-modal-all-room.png`
+- `.playwright-mcp/06-modal-unselect-mateo.png`
+- `.playwright-mcp/06-modal-errors.png`
+- `.playwright-mcp/06-feed-after-post.png`
+- `.playwright-mcp/06-feed-after-reload.png`
+- `.playwright-mcp/06-feed-announcement-top2.png`
+- `.playwright-mcp/06-feed-allroom-meal.png`
+- `.playwright-mcp/06-feed-mobile.png`
+- `.playwright-mcp/06-drawer-mobile.png`
+- `.playwright-mcp/06-modal-mobile.png`
+- `.playwright-mcp/06-modal-mobile-top.png`
