@@ -4,7 +4,12 @@ import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MenuIcon } from '@/app/components/icons';
 
-export const MobileDrawer = () => {
+interface MobileDrawerProps {
+  onNewPost?: () => void;
+  triggerRef?: React.RefObject<HTMLButtonElement | null>;
+}
+
+export const MobileDrawer = ({ onNewPost, triggerRef }: MobileDrawerProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -40,7 +45,14 @@ export const MobileDrawer = () => {
           aria-modal="true"
         >
           <div onClick={(event) => event.stopPropagation()}>
-            <Sidebar onClose={() => setIsOpen(false)} />
+            <Sidebar
+              onClose={() => setIsOpen(false)}
+              onNewPost={() => {
+                setIsOpen(false);
+                onNewPost?.();
+              }}
+              triggerRef={triggerRef}
+            />
           </div>
         </div>
       )}
