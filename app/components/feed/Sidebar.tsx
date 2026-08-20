@@ -15,6 +15,8 @@ import {
 
 interface SidebarProps {
   onClose?: () => void;
+  onNewPost?: () => void;
+  triggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 interface NavItemProps {
@@ -42,7 +44,7 @@ const NavItem = ({ href, icon, label, isActive, onClick }: NavItemProps) => {
   );
 };
 
-export const Sidebar = ({ onClose }: SidebarProps) => {
+export const Sidebar = ({ onClose, onNewPost, triggerRef }: SidebarProps) => {
   const pathname = usePathname();
   const isFeedActive = pathname === '/';
   const isKidsActive = pathname === '/kids' || pathname.startsWith('/kids/');
@@ -77,14 +79,15 @@ export const Sidebar = ({ onClose }: SidebarProps) => {
         </div>
       </Link>
 
-      <a
-        href="#"
-        onClick={(event) => event.preventDefault()}
+      <button
+        type="button"
+        ref={triggerRef}
+        onClick={onNewPost}
         className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-primary-gradient-start to-primary-gradient-end py-3 text-center text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,0.75)]"
       >
         <PlusIcon className="h-[17px] w-[17px]" />
         Nueva publicación
-      </a>
+      </button>
 
       <nav className="flex flex-1 flex-col gap-1">
         <NavItem

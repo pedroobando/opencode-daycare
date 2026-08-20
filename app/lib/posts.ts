@@ -1,4 +1,11 @@
-export type PostType = 'achievement' | 'activity' | 'announcement';
+export type PostType =
+  | 'achievement'
+  | 'activity'
+  | 'announcement'
+  | 'meal'
+  | 'nap'
+  | 'mood'
+  | 'photo';
 
 export interface Post {
   id: string;
@@ -17,6 +24,7 @@ export interface Post {
   photo?: {
     alt: string;
   };
+  photos?: number;
 }
 
 export const posts: Post[] = [
