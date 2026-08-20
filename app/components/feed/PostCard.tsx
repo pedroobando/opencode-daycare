@@ -8,6 +8,7 @@ import {
   ImagePlaceholderIcon,
   MegaphoneIcon,
 } from '@/app/components/icons';
+import { getAvatarTextColor } from '@/app/lib/kids';
 
 interface PostCardProps {
   post: Post;
@@ -29,6 +30,26 @@ const Badge = ({ type }: { type: Post['type'] }) => {
       label: 'ANUNCIO',
       bgClass: 'bg-announcement-bg',
       textClass: 'text-announcement-text',
+    },
+    meal: {
+      label: 'COMIDA',
+      bgClass: 'bg-meal-bg',
+      textClass: 'text-meal-text',
+    },
+    nap: {
+      label: 'SIESTA',
+      bgClass: 'bg-nap-bg',
+      textClass: 'text-nap-text',
+    },
+    mood: {
+      label: 'ÁNIMO',
+      bgClass: 'bg-mood-bg',
+      textClass: 'text-mood-text',
+    },
+    photo: {
+      label: 'FOTO',
+      bgClass: 'bg-photo-bg',
+      textClass: 'text-photo-text',
     },
   };
 
@@ -60,7 +81,7 @@ const Avatar = ({ post }: { post: Post }) => {
       className="flex h-11 w-11 flex-none items-center justify-center rounded-full font-display text-[17px] font-semibold"
       style={{
         backgroundColor: post.author.color,
-        color: '#1F7A93',
+        color: getAvatarTextColor(post.author.color),
       }}
     >
       {post.author.initial}
