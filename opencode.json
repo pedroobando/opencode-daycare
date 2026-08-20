@@ -6,6 +6,7 @@
       "template": "Carga y sigue la skill spec en .agents/skills/spec/SKILL.md.\n\nFeature: $ARGUMENTS"
     }
   },
+  "lsp": true,
   "mcp": {
     "playwright": {
       "type": "local",
@@ -19,8 +20,20 @@
         "Authorization": "Bearer ctx7sk-b1f328a3-d0d2-4f09-a5ae-60d53590cb72"
       },
       "enabled": true
+    },
+    "supabase": {
+      "type": "remote",
+      "url": "https://mcp.supabase.com/mcp?project_ref=fshwfkppcetvqnrccllq&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching",
+      "enabled": true
     }
   },
+  "references": {
+    "docs": {
+      "path": "../07-DB-Schema",
+      "description": "Shema de base de datos, tablas, columnas y referencias a crear, esto no esta implementado en la base de datos, solo es una referencia."
+    }
+  },
+
   "permission": {
     "external_directory": {
       "/tmp/**": "allow"
