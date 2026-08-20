@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { PlusIcon, ImagePlaceholderIcon } from '@/app/components/icons';
 import type { Kid } from '@/app/lib/kids';
 import { getAvatarTextColor } from '@/app/lib/kids';
@@ -66,13 +66,6 @@ export const CreatePostForm = ({
   const [description, setDescription] = useState('');
   const [photoCount, setPhotoCount] = useState(0);
   const [errors, setErrors] = useState<FormErrors>({});
-
-  const kidsById = useMemo(() => {
-    return Object.fromEntries(kids.map((kid) => [kid.id, kid])) as Record<
-      string,
-      Kid
-    >;
-  }, [kids]);
 
   if (!open) {
     return null;
