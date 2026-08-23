@@ -78,6 +78,27 @@ Loaded automatically based on description match — invoke with the `skill` tool
 
 Project ref `fshwfkppcetvqnrccllq`, configured via the Supabase MCP. Before touching Supabase code or DB state:
 
+### Client packages (Next.js ↔ Supabase)
+
+Packages used by this app to talk to Supabase from Next.js (install with pnpm, pin exact versions):
+
+- **`@supabase/supabase-js`** — core client library (`createClient`). Base of everything; required.
+- **`@supabase/ssr`** — official package for Next.js App Router. Provides:
+  - `createBrowserClient` — client components ("use client"), browser-side queries and auth.
+  - `createServerClient` — Server Components / Route Handlers / Server Actions; must be wired to `cookies()` from `next/headers` so auth sessions persist via cookies (middleware refreshes them).
+  - This replaces the deprecated `@supabase/auth-helpers-nextjs` — never use auth-helpers in this project.
+
+Planned structure once implemented:
+
+- `lib/supabase/client.ts` — `createBrowserClient` factory (browser).
+- `lib/supabase/server.ts` — `createServerClient` factory using `await cookies()` from `next/headers` (server).
+- `database.types.ts` — generated TypeScript types via `supabase gen types typescript --linked --schema=public`; passed as generic to both factories for typed queries.
+
+Environment variables (publishable key, safe for the browser) — values live in `.env` (gitignored):
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
 - **Verify docs, not training data.** Supabase changes frequently — fetch `https://supabase.com/changelog.md`, scan for `breaking-change` tags relevant to the task, and consult the docs (MCP `search_docs` → `.md` page fetches → web search).
 - **Prefer the MCP over the CLI.** Use the configured Supabase MCP tools (`execute_sql`, `apply_migration`, `get_advisors`, etc.) instead of `supabase db query` when possible — the MCP does not require CLI v2.79.0+.
 - **Schema workflow.** This project does not yet use declarative schemas (`supabase/schemas/` does not exist). Treat as **imperative migrations**: use `execute_sql` / `apply_migration` for iteration, then commit a clean migration when ready (`supabase db pull <name> --local --yes` after running `get_advisors`).
