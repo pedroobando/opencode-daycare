@@ -1,6 +1,6 @@
 # SPEC 01 (DB) — Tabla raíz `daycares`
 
-> **Estado:** Aprobado
+> **Estado:** implementado
 > **Folder:** `specs/dbase/` (primer spec de DB; numeración independiente de `specs/`)
 > **Depende de:** —
 > **Fecha:** 2026-08-23
@@ -174,8 +174,9 @@ Todos los criterios de aceptación pasaron la verificación contra el proyecto S
     - `anon_security_definer_function_executable` sobre `public.rls_auto_enable()` — función SECURITY DEFINER pre-existente de Supabase (helper interno), no del spec.
     - `authenticated_security_definer_function_executable` sobre `public.rls_auto_enable()` — misma función.
     - `auth_leaked_password_protection` — configuración global de Auth (HaveIBeenPwned), no relacionada a `daycares`.
-    
+
     Ningún advisor apunta a `public.daycares`. Se cumple el criterio.
+
 12. **`pnpm lint` + `npx tsc --noEmit`** — ✓ ambos exit code 0 (regresión limpia, app Next.js sin cambios como esperaba el spec).
 13. **`git log` muestra el commit** — ✓ `886479e525b0217ad71d0f58d45a0bee61ae9039` en `supabase/migrations/`.
 
