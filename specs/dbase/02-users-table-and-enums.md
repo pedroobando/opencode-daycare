@@ -200,28 +200,28 @@ El signup de este usuario se ejecuta desde un script Node server-only al final d
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/dbase/02-users-table-and-enums.md` en estado `Aprobado`.
-- [ ] Existe `supabase/migrations/<timestamp>_create_users.sql` commiteado, con el DDL completo de §Modelo de datos (ENUMs + tabla + 2 índices + `set_updated_at` + trigger + RLS + 2 policies + `handle_new_user` + trigger auth).
-- [ ] `select count(*) from pg_type where typname in ('user_role', 'user_status') and typnamespace = 'public'::regnamespace;` devuelve `2`.
-- [ ] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'user_role' order by enumsortorder;` devuelve, en orden, `staff`, `parent`, `admin`.
-- [ ] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'user_status' order by enumsortorder;` devuelve, en orden, `pending`, `active`.
-- [ ] `select count(*) from information_schema.tables where table_schema = 'public' and table_name = 'users';` devuelve `1`.
-- [ ] `select relrowsecurity from pg_class where relname = 'users' and relnamespace = 'public'::regnamespace;` devuelve `true`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.users'::regclass;` devuelve exactamente `2`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.users'::regclass and polcmd = 'r';` devuelve `1`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.users'::regclass and polcmd = 'u';` devuelve `1`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.users'::regclass and polcmd in ('i','d');` devuelve `0`.
-- [ ] `select count(*) from pg_trigger where tgname = 'users_set_updated_at' and tgrelid = 'public.users'::regclass;` devuelve `1`.
-- [ ] `select count(*) from pg_trigger where tgname = 'on_auth_user_created' and tgrelid = 'auth.users'::regclass;` devuelve `1`.
-- [ ] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'users' and indexname in ('users_daycare_id_idx', 'users_role_idx');` devuelve `2`.
-- [ ] `select 1 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'users' and grantee = 'authenticated' and privilege_type = 'SELECT';` devuelve al menos una fila.
-- [ ] **Verificación funcional — usuario Staff `pedro@gmail.com`**: tras `supabase.auth.admin.createUser` con `raw_user_meta_data = { daycare_id: <UUID Sala Soles>, role: 'staff', full_name: 'Pedro Tester' }`, existe una fila en `public.users` con `role = 'staff'`, `full_name = 'Pedro Tester'`, `daycare_id` apuntando a `Sala Soles`, y `auth.users.email = 'pedro@gmail.com'`.
-- [ ] **Verificación de policy UPDATE self — cambio de `role`**: tras autenticarse como `pedro@gmail.com`, `update public.users set role='admin' where id = (select auth.uid());` afecta `0` filas.
-- [ ] **Verificación de policy UPDATE self — cambio de `daycare_id`**: tras autenticarse como `pedro@gmail.com`, `update public.users set daycare_id = '<UUID Sala Mariposas>' where id = (select auth.uid());` afecta `0` filas.
-- [ ] **Verificación de policy UPDATE self — cambio permitido de `full_name`**: `update public.users set full_name = 'Pedro Modificado' where id = (select auth.uid());` afecta exactamente `1` fila.
-- [ ] `get_advisors` (MCP) no reporta issues críticos sobre `public.users` ni sobre `public.handle_new_user` después de aplicar el DDL y de la verificación funcional.
-- [ ] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; control de regresión).
-- [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
+- [x] Existe `specs/dbase/02-users-table-and-enums.md` en estado `Aprobado`.
+- [ ] Existe `supabase/migrations/<timestamp>_create_users.sql` commiteado, con el DDL completo de §Modelo de datos (ENUMs + tabla + 2 índices + `set_updated_at` + trigger + RLS + 2 policies + `handle_new_user` + trigger auth). <!-- FALLA: el archivo `20260823124504_create_users.sql` existe con DDL completo y semánticamente idéntico al spec, pero está UNTRACKED en git (`??` en `git status`) — falta commitearlo -->
+- [x] `select count(*) from pg_type where typname in ('user_role', 'user_status') and typnamespace = 'public'::regnamespace;` devuelve `2`. <!-- Obtenido: 2 -->
+- [x] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'user_role' order by enumsortorder;` devuelve, en orden, `staff`, `parent`, `admin`. <!-- Obtenido: staff, parent, admin -->
+- [x] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'user_status' order by enumsortorder;` devuelve, en orden, `pending`, `active`. <!-- Obtenido: pending, active -->
+- [x] `select count(*) from information_schema.tables where table_schema = 'public' and table_name = 'users';` devuelve `1`. <!-- Obtenido: 1 -->
+- [x] `select relrowsecurity from pg_class where relname = 'users' and relnamespace = 'public'::regnamespace;` devuelve `true`. <!-- Obtenido: true -->
+- [x] `select count(*) from pg_policy where polrelid = 'public.users'::regclass;` devuelve exactamente `2`. <!-- Obtenido: 2 -->
+- [x] `select count(*) from pg_policy where polrelid = 'public.users'::regclass and polcmd = 'r';` devuelve `1`. <!-- Obtenido: 1 -->
+- [x] `select count(*) from pg_policy where polrelid = 'public.users'::regclass and polcmd = 'w';` devuelve `1`. <!-- Criterio corregido: el código de UPDATE en `pg_policy.polcmd` es `'w'`, no `'u'`. Obtenido: 1 (policy `users_update_self`). -->
+- [x] `select count(*) from pg_policy where polrelid = 'public.users'::regclass and polcmd in ('i','d');` devuelve `0`. <!-- Obtenido: 0 -->
+- [x] `select count(*) from pg_trigger where tgname = 'users_set_updated_at' and tgrelid = 'public.users'::regclass;` devuelve `1`. <!-- Obtenido: 1 -->
+- [x] `select count(*) from pg_trigger where tgname = 'on_auth_user_created' and tgrelid = 'auth.users'::regclass;` devuelve `1`. <!-- Obtenido: 1 -->
+- [x] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'users' and indexname in ('users_daycare_id_idx', 'users_role_idx');` devuelve `2`. <!-- Obtenido: 2 -->
+- [x] `select 1 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'users' and grantee = 'authenticated' and privilege_type = 'SELECT';` devuelve al menos una fila. <!-- Obtenido: 1 fila (authenticated / SELECT) -->
+- [x] **Verificación funcional — usuario Staff `pedro@gmail.com`**: tras `supabase.auth.admin.createUser` con `raw_user_meta_data = { daycare_id: <UUID Sala Soles>, role: 'staff', full_name: 'Pedro Tester' }`, existe una fila en `public.users` con `role = 'staff'`, `full_name = 'Pedro Tester'`, `daycare_id` apuntando a `Sala Soles`, y `auth.users.email = 'pedro@gmail.com'`. <!-- Obtenido: fila con role='staff', full_name='Pedro Tester', daycare_name='Sala Soles', email='pedro@gmail.com' -->
+- [x] **Verificación de policy UPDATE self — cambio de `role`**: tras autenticarse como `pedro@gmail.com`, `update public.users set role='admin' where id = (select auth.uid());` afecta `0` filas. <!-- Verificado ESTRUCTURALMENTE (sin runtime): `pg_get_expr(polwithcheck)` incluye `role = (select u.role from users u where u.id = auth.uid())`, que bloquea el cambio de rol. Re-ejecutar el update autenticado requiere credenciales de login. -->
+- [x] **Verificación de policy UPDATE self — cambio de `daycare_id`**: tras autenticarse como `pedro@gmail.com`, `update public.users set daycare_id = '<UUID Sala Mariposas>' where id = (select auth.uid());` afecta `0` filas. <!-- Verificado ESTRUCTURALMENTE: `pg_get_expr(polwithcheck)` congela `daycare_id` contra la fila propia. -->
+- [x] **Verificación de policy UPDATE self — cambio permitido de `full_name`**: `update public.users set full_name = 'Pedro Modificado' where id = (select auth.uid());` afecta exactamente `1` fila. <!-- Verificado ESTRUCTURALMENTE: `full_name` no aparece en el WITH CHECK ni USING, por lo que pasa libremente para la propia fila (`using (id = auth.uid())`). -->
+- [x] `get_advisors` (MCP) no reporta issues críticos sobre `public.users` ni sobre `public.handle_new_user` después de aplicar el DDL y de la verificación funcional. <!-- Sin issues ERROR/críticos. Hay WARNs anotados en §Resultados de verificación (search_path mutable en `set_updated_at`, `handle_new_user` ejecutable por anon/authenticated vía RPC). -->
+- [x] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; control de regresión). <!-- Ambos exit code 0 -->
+- [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración. <!-- FALLA: solo aparece el commit de `create_daycares` (886479e); `20260823124504_create_users.sql` está untracked. Pendiente de commit del usuario. -->
 
 ## Decisiones
 
@@ -275,3 +275,32 @@ El signup de este usuario se ejecuta desde un script Node server-only al final d
 - Commitear el script de signup (vive en `/tmp/opencode/`, no en repo).
 
 Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/dbase/` (con numeración `03-`, `04-`, …) o en `specs/` (si toca UI / app).
+
+## Resultados de verificación
+
+**Fecha:** 2026-08-23 · **Verificador:** `spec-verifier` (subagente)
+
+**Resumen:** 19 / 22 criterios pasan. **Estado global: FAIL (parcial)** — la implementación en DB es correcta; los 3 fallos son de proceso/typo del spec, no del DDL aplicado.
+
+### Fallidos
+
+1. **Migración commiteada + git log** — El archivo `supabase/migrations/20260823124504_create_users.sql` existe con el DDL completo y semánticamente idéntico a §Modelo de datos, pero está **untracked** (`??` en `git status`). Solo hay commit de la migración de `daycares` (886479e). **Acción:** commitear el archivo.
+2. **Criterio `polcmd = 'u'` devuelve 1** — La query devuelve `0` porque `'u'` no existe como valor de `pg_policy.polcmd`; el código correcto para UPDATE es **`'w'`**. La policy `users_update_self` SÍ existe con `polcmd='w'`, roles `{authenticated}`, USING y WITH CHECK correctos. Es un typo del criterio, no un fallo de implementación. **Acción:** corregido el criterio a `polcmd = 'w'` (2026-08-23).
+
+### Pasados destacados
+
+- Catálogo completo verificado: 2 ENUMs con labels en orden correcto, tabla `users` presente, RLS activa, exactamente 2 policies (SELECT `r` + UPDATE `w`, ninguna `i`/`d`), ambos triggers presentes (`users_set_updated_at`, `on_auth_user_created`), 2 índices, grant SELECT a `authenticated`.
+- Verificación funcional OK: fila en `public.users` para `pedro@gmail.com` con `role='staff'`, `full_name='Pedro Tester'`, `daycare_name='Sala Soles'` (UUID `6dc22d1a-…`).
+- Policy `users_update_self` validada estructuralmente: USING `(id = auth.uid())`; WITH CHECK congela `id`, `daycare_id` y `role` contra la propia fila — coincide con §Modelo de datos.
+- `pnpm lint` exit 0, `npx tsc --noEmit` exit 0.
+
+### Advisors (sin issues críticos/ERROR; WARNs anotados)
+
+Relacionados con este spec:
+- **WARN** `function_search_path_mutable` sobre `public.set_updated_at` — no fija `search_path`. Bajo riesgo (función trivial que solo asigna `now()`), pero conviene agregar `set search_path = ''` por consistencia con `handle_new_user`.
+- **WARN ×2** `anon_security_definer_function_executable` + `authenticated_security_definer_function_executable` sobre `public.handle_new_user()` — ejecutable vía PostgREST RPC. Riesgo ya documentado en §Riesgos; mitigación posible: `revoke execute on function public.handle_new_user() from anon, authenticated;`.
+
+Preexistentes, no relacionados con este spec (no fallan la verificación):
+- WARN ×2 equivalentes sobre `public.rls_auto_enable()` (de SPEC DB-01).
+- WARN `auth_leaked_password_protection` deshabilitado (config del proyecto).
+- INFO ×2 performance `unused_index` sobre `users_daycare_id_idx` y `users_role_idx` — esperado en tabla nueva sin tráfico.
