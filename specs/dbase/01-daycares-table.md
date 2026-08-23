@@ -92,19 +92,19 @@ Notas:
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/dbase/01-daycares-table.md` en estado `Borrador`.
-- [ ] Existe `supabase/migrations/<timestamp>_create_daycares.sql` commiteado, con el DDL completo de Modelo de datos (tabla + RLS + policy + 4 INSERTs).
-- [ ] Existen `supabase/migrations/.gitkeep` y `specs/dbase/.gitkeep`.
-- [ ] `select count(*) from public.daycares;` devuelve `4`.
-- [ ] `select name from public.daycares order by name;` devuelve, en orden, `Sala Arcoíris`, `Sala Estrellitas`, `Sala Mariposas`, `Sala Soles`.
-- [ ] `select relrowsecurity from pg_class where relname = 'daycares' and relnamespace = 'public'::regnamespace;` devuelve `true`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.daycares'::regclass;` devuelve `1`.
-- [ ] Esa única policy tiene `polcmd = 'r'` y su rol asociado es `authenticated` (consulta a `pg_policy` + `pg_roles`).
-- [ ] `select count(*) from pg_policy where polrelid = 'public.daycares'::regclass and polcmd in ('i','u','d');` devuelve `0`.
-- [ ] `select 1 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'daycares' and grantee = 'authenticated' and privilege_type = 'SELECT';` devuelve al menos una fila.
-- [ ] `get_advisors` (MCP) no reporta issues críticos sobre `public.daycares` después de aplicar el DDL.
-- [ ] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; esto es control de regresión).
-- [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
+- [x] Existe `specs/dbase/01-daycares-table.md` en estado `Borrador`. **Nota verificación:** el archivo existe pero el estado real en línea 3 es `Aprobado` (cambio realizado por el usuario antes de la implementación), no `Borrador`. Se acepta como OK según la aclaración del usuario.
+- [x] Existe `supabase/migrations/<timestamp>_create_daycares.sql` commiteado, con el DDL completo de Modelo de datos (tabla + RLS + policy + 4 INSERTs).
+- [x] Existen `supabase/migrations/.gitkeep` y `specs/dbase/.gitkeep`.
+- [x] `select count(*) from public.daycares;` devuelve `4`.
+- [x] `select name from public.daycares order by name;` devuelve, en orden, `Sala Arcoíris`, `Sala Estrellitas`, `Sala Mariposas`, `Sala Soles`.
+- [x] `select relrowsecurity from pg_class where relname = 'daycares' and relnamespace = 'public'::regnamespace;` devuelve `true`.
+- [x] `select count(*) from pg_policy where polrelid = 'public.daycares'::regclass;` devuelve `1`.
+- [x] Esa única policy tiene `polcmd = 'r'` y su rol asociado es `authenticated` (consulta a `pg_policy` + `pg_roles`).
+- [x] `select count(*) from pg_policy where polrelid = 'public.daycares'::regclass and polcmd in ('i','u','d');` devuelve `0`.
+- [x] `select 1 from information_schema.role_table_grants where table_schema = 'public' and table_name = 'daycares' and grantee = 'authenticated' and privilege_type = 'SELECT';` devuelve al menos una fila.
+- [x] `get_advisors` (MCP) no reporta issues críticos sobre `public.daycares` después de aplicar el DDL.
+- [x] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; esto es control de regresión).
+- [x] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
 
 ## Decisiones
 
@@ -144,3 +144,43 @@ Notas:
 - Tests automatizados.
 
 Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/dbase/` (con numeración `02-`, `03-`, …) o en `specs/` (si toca UI / app).
+
+## Resultados de verificación
+
+**Fecha:** 2026-08-23
+**Verificador:** `spec-verifier` (subagente)
+**Branch:** `spec-01-daycares-table`
+**Commit verificado:** `886479e Paso 1 - feat: Create \`daycares\` table with row level security and initial data`
+
+### Resumen
+
+**13 de 13 criterios aprobados.**
+
+Todos los criterios de aceptación pasaron la verificación contra el proyecto Supabase `fshwfkppcetvqnrccllq` (vía MCP) y contra el árbol git local.
+
+### Detalle por criterio
+
+1. **Spec existe** — ✓ archivo presente; el estado real es `Aprobado` (línea 3), no `Borrador` como dice el criterio. Aceptado según aclaración del usuario en el prompt de verificación.
+2. **Migración commiteada con DDL completo** — ✓ `supabase/migrations/20260823124503_create_daycares.sql` (24 líneas). Diff contra §Modelo de datos: semánticamente equivalente, mismo orden de sentencias, mismos 4 INSERTs.
+3. **Ambos `.gitkeep`** — ✓ `specs/dbase/.gitkeep` y `supabase/migrations/.gitkeep` presentes (0 bytes cada uno).
+4. **`count(*) = 4`** — ✓ devuelve `4`.
+5. **Orden alfabético de los 4 nombres** — ✓ `Sala Arcoíris`, `Sala Estrellitas`, `Sala Mariposas`, `Sala Soles` (orden ascendente, tilde de "Arcoíris" se ordena antes de "Estrellitas" según collation local).
+6. **`relrowsecurity = true`** — ✓ RLS habilitada en `public.daycares`.
+7. **`pg_policy count = 1`** — ✓ exactamente 1 policy.
+8. **policy con `polcmd='r'` y role=`authenticated`** — ✓ nombre `daycares_select_authenticated`, comando `r` (SELECT), `polroles` resuelve a `rolname='authenticated'` (oid 16485). La query de verificación tuvo que usar `ANY(p.polroles)` en vez de `polroles[0]` para que Postgres convierta el array element a OID en el join con `pg_roles`.
+9. **0 policies de INSERT/UPDATE/DELETE** — ✓ `count = 0` para `polcmd in ('i','u','d')`.
+10. **grant SELECT a authenticated** — ✓ fila encontrada en `information_schema.role_table_grants`.
+11. **`get_advisors` sin críticos en `daycares`** — ✓ `performance` vacío; `security` reporta 3 warnings (`WARN`, no críticos):
+    - `anon_security_definer_function_executable` sobre `public.rls_auto_enable()` — función SECURITY DEFINER pre-existente de Supabase (helper interno), no del spec.
+    - `authenticated_security_definer_function_executable` sobre `public.rls_auto_enable()` — misma función.
+    - `auth_leaked_password_protection` — configuración global de Auth (HaveIBeenPwned), no relacionada a `daycares`.
+    
+    Ningún advisor apunta a `public.daycares`. Se cumple el criterio.
+12. **`pnpm lint` + `npx tsc --noEmit`** — ✓ ambos exit code 0 (regresión limpia, app Next.js sin cambios como esperaba el spec).
+13. **`git log` muestra el commit** — ✓ `886479e525b0217ad71d0f58d45a0bee61ae9039` en `supabase/migrations/`.
+
+### Notas y discrepancias
+
+- **Estado del spec:** El spec dice "Borrador" en el criterio #1 pero la línea 3 ya dice `Aprobado`. Es la única discrepancia entre lo escrito en el spec y la realidad, y queda documentada in-line en el check #1 y acá. No requiere acción.
+- **SQL helpers del verificador:** `pg_policy.polroles` es `oid[]`, no un OID escalar. La query inicial con `polroles[0]` dio `null` en el join; el resultado correcto requirió `ANY(p.polroles)` o un lateral join. Anotado por si se reusa esta verificación en futuros specs.
+- **Advisors pre-existentes:** Las 3 warnings de `security` no son del spec y son heredadas del template de Supabase. Si en algún momento se quiere limpieza, van en un spec aparte (no en este).
