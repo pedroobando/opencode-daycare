@@ -1,6 +1,6 @@
 # SPEC 02 (DB) — Tabla `users` con ENUMs, RLS y trigger de signup
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Folder:** `specs/dbase/` (DB-02)
 > **Depende de:** SPEC DB-01 (`daycares`)
 > **Fecha:** 2026-08-23
@@ -152,12 +152,12 @@ Notas:
 
 ### Datos del usuario Staff de prueba (solo para verificación, no se persiste en la migración)
 
-| Campo | Valor |
-|---|---|
-| `email` | `pedro@gmail.com` |
-| `password` | `abcd1234#` |
-| `full_name` (metadata) | `Pedro Tester` |
-| `role` (metadata) | `staff` |
+| Campo                   | Valor                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `email`                 | `pedro@gmail.com`                                                                                          |
+| `password`              | `abcd1234#`                                                                                                |
+| `full_name` (metadata)  | `Pedro Tester`                                                                                             |
+| `role` (metadata)       | `staff`                                                                                                    |
 | `daycare_id` (metadata) | UUID de `Sala Soles` (resuelto en runtime con `select id from public.daycares where name = 'Sala Soles';`) |
 
 El signup de este usuario se ejecuta desde un script Node server-only al final del plan de implementación. **No** queda embebido en la migración SQL.
@@ -201,7 +201,7 @@ El signup de este usuario se ejecuta desde un script Node server-only al final d
 ## Criterios de aceptación
 
 - [x] Existe `specs/dbase/02-users-table-and-enums.md` en estado `Aprobado`.
-- [ ] Existe `supabase/migrations/<timestamp>_create_users.sql` commiteado, con el DDL completo de §Modelo de datos (ENUMs + tabla + 2 índices + `set_updated_at` + trigger + RLS + 2 policies + `handle_new_user` + trigger auth). <!-- FALLA: el archivo `20260823124504_create_users.sql` existe con DDL completo y semánticamente idéntico al spec, pero está UNTRACKED en git (`??` en `git status`) — falta commitearlo -->
+- [x] Existe `supabase/migrations/<timestamp>_create_users.sql` commiteado, con el DDL completo de §Modelo de datos (ENUMs + tabla + 2 índices + `set_updated_at` + trigger + RLS + 2 policies + `handle_new_user` + trigger auth). <!-- Committeado en 95c1f0c (verificación #2, 2026-08-23) -->
 - [x] `select count(*) from pg_type where typname in ('user_role', 'user_status') and typnamespace = 'public'::regnamespace;` devuelve `2`. <!-- Obtenido: 2 -->
 - [x] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'user_role' order by enumsortorder;` devuelve, en orden, `staff`, `parent`, `admin`. <!-- Obtenido: staff, parent, admin -->
 - [x] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'user_status' order by enumsortorder;` devuelve, en orden, `pending`, `active`. <!-- Obtenido: pending, active -->
@@ -221,7 +221,7 @@ El signup de este usuario se ejecuta desde un script Node server-only al final d
 - [x] **Verificación de policy UPDATE self — cambio permitido de `full_name`**: `update public.users set full_name = 'Pedro Modificado' where id = (select auth.uid());` afecta exactamente `1` fila. <!-- Verificado ESTRUCTURALMENTE: `full_name` no aparece en el WITH CHECK ni USING, por lo que pasa libremente para la propia fila (`using (id = auth.uid())`). -->
 - [x] `get_advisors` (MCP) no reporta issues críticos sobre `public.users` ni sobre `public.handle_new_user` después de aplicar el DDL y de la verificación funcional. <!-- Sin issues ERROR/críticos. Hay WARNs anotados en §Resultados de verificación (search_path mutable en `set_updated_at`, `handle_new_user` ejecutable por anon/authenticated vía RPC). -->
 - [x] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; control de regresión). <!-- Ambos exit code 0 -->
-- [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración. <!-- FALLA: solo aparece el commit de `create_daycares` (886479e); `20260823124504_create_users.sql` está untracked. Pendiente de commit del usuario. -->
+- [x] `git log -1 -- supabase/migrations/` muestra el commit con la migración. <!-- Commit 95c1f0c visible en git log (verificación #2, 2026-08-23) -->
 
 ## Decisiones
 
@@ -246,17 +246,17 @@ El signup de este usuario se ejecuta desde un script Node server-only al final d
 
 ## Riesgos
 
-| Riesgo | Mitigación |
-|---|---|
-| `SECURITY DEFINER` sobre `handle_new_user` ejecuta con privilegios amplios | `set search_path = ''` evita hijacking; validación de inputs (UUID válido, role válido, full_name no vacío) cierra el attack surface; la función solo hace INSERT en `public.users` con valores del metadata. |
+| Riesgo                                                                                                                  | Mitigación                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SECURITY DEFINER` sobre `handle_new_user` ejecuta con privilegios amplios                                              | `set search_path = ''` evita hijacking; validación de inputs (UUID válido, role válido, full_name no vacío) cierra el attack surface; la función solo hace INSERT en `public.users` con valores del metadata.                                      |
 | Trigger sobre `auth.users` se dispara para TODOS los signups, incluidos usuarios sin metadata (OAuth sin custom claims) | `handle_new_user` lanza excepción si falta `daycare_id` o `full_name`. Signups OAuth sin metadata fallan al crear el usuario de Auth (Postgres revierte la transacción). Comportamiento deseable: no queremos filas en `public.users` sin daycare. |
-| Cast `(raw_user_meta_data ->> 'role')::public.user_role` falla si llega un role inválido | Excepción clara de Postgres. La app cliente puede validar antes de signup. No degrada el sistema; mejor fail-fast que fila inválida. |
-| Re-ejecución manual de la migración falla por `create type` duplicado | Aceptable: `supabase migration up` no re-ejecuta migraciones aplicadas. Si se re-corre manualmente, `create type` falla claramente. |
-| Trigger genérico `set_updated_at` colisiona con el de otra migración futura | Nombre específico por tabla (`users_set_updated_at`) — cada spec crea el suyo. |
-| `pedro@gmail.com` ya existe en `auth.users` por un test previo | Paso 8.2 del plan limpia antes del signup. |
-| `Sala Soles` no existe aún en `public.daycares` (depende de SPEC DB-01) | Paso 3 del plan valida antes del DDL; abortar si no existe. |
-| `email_confirm` requerido en el proyecto impide signups desde `createUser` | Se usa `supabase.auth.admin.createUser` con `email_confirm: true`, que saltea el flujo de confirmación. Si el proyecto tiene reglas más estrictas, ajustar el script. |
-| `SUPABASE_SERVICE_ROLE_KEY` filtrada al commitar el script de verificación | El script vive en `/tmp/opencode/`, fuera del repo. No se commitea. Si más adelante se necesita dentro del repo, mover a scripts server-only con permiso de gitignore explícito. |
+| Cast `(raw_user_meta_data ->> 'role')::public.user_role` falla si llega un role inválido                                | Excepción clara de Postgres. La app cliente puede validar antes de signup. No degrada el sistema; mejor fail-fast que fila inválida.                                                                                                               |
+| Re-ejecución manual de la migración falla por `create type` duplicado                                                   | Aceptable: `supabase migration up` no re-ejecuta migraciones aplicadas. Si se re-corre manualmente, `create type` falla claramente.                                                                                                                |
+| Trigger genérico `set_updated_at` colisiona con el de otra migración futura                                             | Nombre específico por tabla (`users_set_updated_at`) — cada spec crea el suyo.                                                                                                                                                                     |
+| `pedro@gmail.com` ya existe en `auth.users` por un test previo                                                          | Paso 8.2 del plan limpia antes del signup.                                                                                                                                                                                                         |
+| `Sala Soles` no existe aún en `public.daycares` (depende de SPEC DB-01)                                                 | Paso 3 del plan valida antes del DDL; abortar si no existe.                                                                                                                                                                                        |
+| `email_confirm` requerido en el proyecto impide signups desde `createUser`                                              | Se usa `supabase.auth.admin.createUser` con `email_confirm: true`, que saltea el flujo de confirmación. Si el proyecto tiene reglas más estrictas, ajustar el script.                                                                              |
+| `SUPABASE_SERVICE_ROLE_KEY` filtrada al commitar el script de verificación                                              | El script vive en `/tmp/opencode/`, fuera del repo. No se commitea. Si más adelante se necesita dentro del repo, mover a scripts server-only con permiso de gitignore explícito.                                                                   |
 
 ## Qué **no** entra en este spec
 
@@ -280,7 +280,9 @@ Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/dbase/` (c
 
 **Fecha:** 2026-08-23 · **Verificador:** `spec-verifier` (subagente)
 
-**Resumen:** 19 / 22 criterios pasan. **Estado global: FAIL (parcial)** — la implementación en DB es correcta; los 3 fallos son de proceso/typo del spec, no del DDL aplicado.
+**Resumen:** 19 / 22 criterios pasan. **Estado global: FAIL (parcial)** — la implementación en DB es correcta; los fallos son de proceso/typo del spec, no del DDL aplicado.
+
+> **Re-verificación (2026-08-23): PASS 22/22.** Migración commiteada (`95c1f0c`), criterio `polcmd='w'`=1 corregido, catálogo/funcional/advisors/lint/tsc sin cambios. Spec marcado como **Implementado**.
 
 ### Fallidos
 
@@ -297,10 +299,12 @@ Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/dbase/` (c
 ### Advisors (sin issues críticos/ERROR; WARNs anotados)
 
 Relacionados con este spec:
+
 - **WARN** `function_search_path_mutable` sobre `public.set_updated_at` — no fija `search_path`. Bajo riesgo (función trivial que solo asigna `now()`), pero conviene agregar `set search_path = ''` por consistencia con `handle_new_user`.
 - **WARN ×2** `anon_security_definer_function_executable` + `authenticated_security_definer_function_executable` sobre `public.handle_new_user()` — ejecutable vía PostgREST RPC. Riesgo ya documentado en §Riesgos; mitigación posible: `revoke execute on function public.handle_new_user() from anon, authenticated;`.
 
 Preexistentes, no relacionados con este spec (no fallan la verificación):
+
 - WARN ×2 equivalentes sobre `public.rls_auto_enable()` (de SPEC DB-01).
 - WARN `auth_leaked_password_protection` deshabilitado (config del proyecto).
 - INFO ×2 performance `unused_index` sobre `users_daycare_id_idx` y `users_role_idx` — esperado en tabla nueva sin tráfico.
