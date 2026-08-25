@@ -9,7 +9,7 @@ import { PostCard } from '@/app/components/feed/PostCard';
 import { CreatePostModal } from '@/app/components/feed/CreatePostModal';
 import { posts } from '@/app/lib/posts';
 import type { Post } from '@/app/lib/posts';
-import { kids } from '@/app/lib/kids';
+import type { Kid } from '@/app/lib/kids';
 import type { SidebarUser } from '@/lib/supabase/current-user';
 
 const formatDate = (date: Date): string => {
@@ -29,9 +29,10 @@ const formatDate = (date: Date): string => {
 
 interface FeedBodyProps {
   currentUser?: SidebarUser | null;
+  kids: Kid[];
 }
 
-export const FeedBody = ({ currentUser }: FeedBodyProps) => {
+export const FeedBody = ({ currentUser, kids }: FeedBodyProps) => {
   const [postsList, setPostsList] = useState<Post[]>(posts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -40,7 +41,7 @@ export const FeedBody = ({ currentUser }: FeedBodyProps) => {
     return [...kids].sort((a, b) =>
       a.firstName.localeCompare(b.firstName, 'es'),
     );
-  }, []);
+  }, [kids]);
 
   const today = new Date();
   const dateLabel = formatDate(today);

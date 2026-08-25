@@ -1,4 +1,5 @@
 export { listChildren } from './list-children';
+export { getChildById } from './get-child-by-id';
 export { createChild } from './create-child';
 export { updateChild } from './update-child';
 export type { UpdateChildPatch } from './update-child';

@@ -4,7 +4,11 @@ import { Sidebar } from '@/app/components/feed/Sidebar';
 import { KidProfileBody } from '@/app/components/kids/KidProfileBody';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/current-user';
-import { getKidById } from '@/app/lib/kids';
+import { getChildById } from '@/app/actions/children';
+import {
+  assignColorsDeterministic,
+  childToKidWithoutColor,
+} from '@/app/lib/kid-mapper';
 
 interface KidProfilePageProps {
   params: Promise<{ id: string }>;
@@ -21,12 +25,13 @@ export default async function KidProfilePage({ params }: KidProfilePageProps) {
   }
 
   const { id } = await params;
-  const kid = getKidById(id);
+  const child = await getChildById(id);
 
-  if (!kid) {
+  if (!child) {
     notFound();
   }
 
+  const kid = assignColorsDeterministic([childToKidWithoutColor(child)])[0];
   const currentUser = await getCurrentUser();
 
   return (

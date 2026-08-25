@@ -1,18 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore, useActionState } from 'react';
 import { createPortal } from 'react-dom';
-import { AddKidForm, AddKidFormPayload } from '@/app/components/kids/AddKidForm';
-import type { Kid, Room } from '@/app/lib/kids';
-import { pickNextColor } from '@/app/utils/avatar-colors';
-import { slugify } from '@/app/utils/slugify';
+import { AddKidForm } from '@/app/components/kids/AddKidForm';
+import type { RoomRow } from '@/app/actions/rooms';
+import { createChild } from '@/app/actions/children';
+import type { CreateChildState } from '@/app/actions/children';
 
 interface AddKidModalProps {
   open: boolean;
   onClose: () => void;
-  rooms: Room[];
-  existingKids: Kid[];
-  onAddKid: (kid: Kid) => void;
+  rooms: RoomRow[];
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -24,92 +22,20 @@ const useMounted = (): boolean => {
   );
 };
 
-const differenceInYears = (dateLeft: Date, dateRight: Date): number => {
-  const years = dateLeft.getFullYear() - dateRight.getFullYear();
-  const monthDiff = dateLeft.getMonth() - dateRight.getMonth();
-  const dayDiff = dateLeft.getDate() - dateRight.getDate();
-
-  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-    return years - 1;
-  }
-
-  return years;
-};
-
-const formatLocalDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-};
-
-interface BuildKidPayload {
-  fullName: string;
-  birthDate: Date;
-  roomId: string;
-  allergies: string;
-}
-
-const buildKid = (
-  payload: BuildKidPayload,
-  existingKids: Kid[],
-  rooms: Room[],
-): Kid => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const trimmedFullName = payload.fullName.trim();
-  const firstSpaceIndex = trimmedFullName.indexOf(' ');
-
-  const firstName =
-    firstSpaceIndex === -1
-      ? trimmedFullName
-      : trimmedFullName.slice(0, firstSpaceIndex);
-  const lastName =
-    firstSpaceIndex === -1
-      ? ''
-      : trimmedFullName.slice(firstSpaceIndex + 1).trim();
-
-  let id = slugify(`${firstName}-${lastName}`);
-
-  if (existingKids.some((kid) => kid.id === id)) {
-    id = `${id}-${Date.now()}`;
-  }
-
-  const selectedRoom = rooms.find((room) => room.id === payload.roomId);
-
-  if (!selectedRoom) {
-    throw new Error(`Room with id "${payload.roomId}" was not found.`);
-  }
-
-  return {
-    id,
-    firstName,
-    lastName,
-    age: differenceInYears(today, payload.birthDate),
-    birthDate: formatLocalDate(payload.birthDate),
-    roomId: selectedRoom.id,
-    roomName: selectedRoom.name,
-    enrollmentDate: formatLocalDate(today),
-    initial: firstName.charAt(0).toUpperCase(),
-    color: pickNextColor(existingKids, (kid) => kid.color),
-    allergies: payload.allergies === '' ? undefined : payload.allergies,
-    linkedParents: [],
-  };
-};
+const INITIAL_STATE: CreateChildState = { error: null };
 
 export const AddKidModal = ({
   open,
   onClose,
   rooms,
-  existingKids,
-  onAddKid,
   triggerRef,
 }: AddKidModalProps) => {
   const mounted = useMounted();
   const cardRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<Element | null>(null);
+  const submitAttemptedRef = useRef(false);
+
+  const [state, formAction] = useActionState(createChild, INITIAL_STATE);
 
   useEffect(() => {
     if (!open) {
@@ -171,6 +97,13 @@ export const AddKidModal = ({
     }
   }, [open, triggerRef]);
 
+  useEffect(() => {
+    if (state.error === null && submitAttemptedRef.current) {
+      submitAttemptedRef.current = false;
+      onClose();
+    }
+  }, [state, onClose]);
+
   const handleBackdropClick = () => {
     onClose();
   };
@@ -179,10 +112,8 @@ export const AddKidModal = ({
     event.stopPropagation();
   };
 
-  const handleSubmit = (payload: AddKidFormPayload) => {
-    const newKid = buildKid(payload, existingKids, rooms);
-    onAddKid(newKid);
-    onClose();
+  const handleSubmitAttempted = () => {
+    submitAttemptedRef.current = true;
   };
 
   if (!open || !mounted) {
@@ -206,7 +137,9 @@ export const AddKidModal = ({
           rooms={rooms}
           open={open}
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          formAction={formAction}
+          state={state}
+          onSubmitAttempted={handleSubmitAttempted}
         />
       </div>
     </div>,
