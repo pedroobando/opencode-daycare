@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from '@/app/actions/auth';
+import type { SidebarUser } from '@/lib/supabase/current-user';
 import {
   LogoIcon,
   PlusIcon,
@@ -17,6 +19,7 @@ interface SidebarProps {
   onClose?: () => void;
   onNewPost?: () => void;
   triggerRef?: React.RefObject<HTMLButtonElement | null>;
+  currentUser?: SidebarUser | null;
 }
 
 interface NavItemProps {
@@ -44,10 +47,28 @@ const NavItem = ({ href, icon, label, isActive, onClick }: NavItemProps) => {
   );
 };
 
-export const Sidebar = ({ onClose, onNewPost, triggerRef }: SidebarProps) => {
+export const Sidebar = ({
+  onClose,
+  onNewPost,
+  triggerRef,
+  currentUser,
+}: SidebarProps) => {
   const pathname = usePathname();
   const isFeedActive = pathname === '/';
   const isKidsActive = pathname === '/kids' || pathname.startsWith('/kids/');
+
+  const avatarColorClass = currentUser?.avatarColorClass ?? 'bg-avatar-coral';
+  const initial = currentUser?.initial ?? 'C';
+  const fullName = currentUser?.fullName ?? 'Caro Giménez';
+  const roleLine = currentUser
+    ? `${currentUser.roleLabel} · ${currentUser.daycareName}`
+    : 'Maestra · Soles';
+
+  if (currentUser === undefined && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[Sidebar] currentUser prop is undefined; falling back to mock identity.',
+    );
+  }
 
   return (
     <aside className="relative flex h-full w-[248px] flex-none flex-col border-r border-card-border bg-card px-4 py-6">
@@ -118,25 +139,29 @@ export const Sidebar = ({ onClose, onNewPost, triggerRef }: SidebarProps) => {
 
       <div className="mt-2.5 border-t border-card-border pt-3.5">
         <div className="flex items-center gap-[11px] px-2 py-1.5">
-          <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full bg-avatar-coral font-display text-base font-semibold text-white">
-            C
+          <div
+            className={`flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full font-display text-base font-semibold text-white ${avatarColorClass}`}
+          >
+            {initial}
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-extrabold text-foreground">
-              Caro Giménez
+              {fullName}
             </div>
-            <div className="text-xs text-muted-lighter">Maestra · Soles</div>
+            <div className="text-xs text-muted-lighter">{roleLine}</div>
           </div>
-          <a
-            href="#"
-            onClick={(event) => event.preventDefault()}
-            title="Cerrar sesión"
-            className="flex h-8 w-8 flex-none items-center justify-center rounded-[10px] bg-background text-muted-light hover:text-foreground"
-          >
-            <LogoutIcon className="h-4 w-4" />
-          </a>
+          <form action={signOut} className="contents">
+            <button
+              type="submit"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+              className="flex h-8 w-8 flex-none items-center justify-center rounded-[10px] bg-background text-muted-light hover:text-foreground"
+            >
+              <LogoutIcon className="h-4 w-4" />
+            </button>
+          </form>
         </div>
       </div>
     </aside>
   );
-}
+};
