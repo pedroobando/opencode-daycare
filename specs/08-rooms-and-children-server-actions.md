@@ -1,6 +1,6 @@
 # SPEC 08 — Server actions CRUD para `rooms` y `children`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC DB-03 (tablas `public.rooms` y `public.children` + ENUM `child_status`), SPEC 07 (`createSupabaseServerClient`, `getCurrentUser`)
 > **Fecha:** 2026-08-24
 > **Objetivo:** Crear server actions CRUD para `rooms` y `children` en `app/actions/`, tipados contra `database.types.ts`, con validación inline y filtro multi-tenant por `daycare_id` del usuario actual, listos para que la UI (`/kids`, `/kids/[id]`, modal "Agregar niño") los invoque.
@@ -195,28 +195,28 @@ export const requireCurrentUserDaycareId = async (): Promise<string> => {
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/08-rooms-and-children-server-actions.md` en estado `Borrador`.
-- [ ] `database.types.ts` regenerado y commiteado, contiene `rooms: { Row: ..., Insert: ..., Update: ... }`, `children: { ... }`, y `Enums.child_status: 'active' | 'archived'`.
-- [ ] Existen los archivos:
+- [x] Existe `specs/08-rooms-and-children-server-actions.md` (estado avanzado a `Implementado`; el criterio original decía `Borrador`, obsoleto por flujo).
+- [x] `database.types.ts` regenerado y commiteado, contiene `rooms: { Row: ..., Insert: ..., Update: ... }`, `children: { ... }`, y `Enums.child_status: 'active' | 'archived'`.
+- [x] Existen los archivos:
   - `app/actions/_lib/current-daycare.ts`
   - `app/actions/rooms/types.ts`, `list-rooms.ts`, `create-room.ts`, `update-room.ts`, `delete-room.ts`, `index.ts`
   - `app/actions/children/types.ts`, `list-children.ts`, `create-child.ts`, `update-child.ts`, `archive-child.ts`, `index.ts`
-- [ ] Cada archivo de action tiene `'use server'` en la primera línea.
-- [ ] Cada action es una arrow function exportada.
-- [ ] `app/actions/rooms/index.ts` re-exporta `listRooms`, `createRoom`, `updateRoom`, `deleteRoom` y los tipos `RoomRow`, `RoomInsert`, `RoomUpdate`, `CreateRoomState`, `UpdateRoomState`.
-- [ ] `app/actions/children/index.ts` re-exporta `listChildren`, `createChild`, `updateChild`, `archiveChild` y los tipos `ChildRow`, `ChildInsert`, `ChildUpdate`, `ChildWithRoom`, `CreateChildState`, `UpdateChildState`.
-- [ ] `listRooms()` filtra por `daycare_id = currentUserDaycareId` (verificable por lectura del body).
-- [ ] `listChildren()` filtra por `rooms.daycare_id = currentUserDaycareId` vía `!inner` JOIN (verificable por lectura del body).
-- [ ] `createRoom` y `createChild` resuelven `daycare_id` (o `room_id`) desde el usuario actual, no desde el form (verificable por lectura del body).
-- [ ] `updateRoom`, `updateChild`, `archiveChild`, `deleteRoom` validan pertenencia al daycare del usuario antes de tocar la fila (verificable por lectura del body).
-- [ ] `deleteRoom` captura el código de error `23503` de Postgres y devuelve el mensaje `'No se puede borrar: la sala tiene niños activos.'` (verificable por lectura del body).
-- [ ] `createChild` parsea `birth_date` de `dd/mm/aaaa` a `YYYY-MM-DD` antes del INSERT (verificable por lectura del body).
-- [ ] Mensajes de error en español con voseo, consistentes con `app/actions/auth/sign-in.ts`.
-- [ ] Verificación funcional de lecturas: tras autenticarse como `pedro@gmail.com` y llamar `listRooms()`, devuelve 3 filas (`Soles`, `Lunitas`, `Estrellitas`). `listChildren()` devuelve 0 filas. Verificado vía script Node server-only en `/tmp/opencode/verify-list.ts`.
-- [ ] Caveat de RLS documentado en §Decisiones, §Riesgos y comentario al top de `app/actions/rooms/create-room.ts` y `app/actions/children/create-child.ts`.
-- [ ] `npx tsc --noEmit` exit 0.
-- [ ] `pnpm lint` exit 0.
-- [ ] `pnpm build` exit 0 (control de regresión).
+- [x] Cada archivo de action tiene `'use server'` en la primera línea.
+- [x] Cada action es una arrow function exportada.
+- [x] `app/actions/rooms/index.ts` re-exporta `listRooms`, `createRoom`, `updateRoom`, `deleteRoom` y los tipos `RoomRow`, `RoomInsert`, `RoomUpdate`, `CreateRoomState`, `UpdateRoomState`.
+- [x] `app/actions/children/index.ts` re-exporta `listChildren`, `createChild`, `updateChild`, `archiveChild` y los tipos `ChildRow`, `ChildInsert`, `ChildUpdate`, `ChildWithRoom`, `CreateChildState`, `UpdateChildState`.
+- [x] `listRooms()` filtra por `daycare_id = currentUserDaycareId` (verificable por lectura del body).
+- [x] `listChildren()` filtra por `rooms.daycare_id = currentUserDaycareId` vía `!inner` JOIN (verificable por lectura del body).
+- [x] `createRoom` y `createChild` resuelven `daycare_id` (o `room_id`) desde el usuario actual, no desde el form (verificable por lectura del body).
+- [x] `updateRoom`, `updateChild`, `archiveChild`, `deleteRoom` validan pertenencia al daycare del usuario antes de tocar la fila (verificable por lectura del body).
+- [x] `deleteRoom` captura el código de error `23503` de Postgres y devuelve el mensaje `'No se puede borrar: la sala tiene niños activos.'` (verificable por lectura del body).
+- [x] `createChild` parsea `birth_date` de `dd/mm/aaaa` a `YYYY-MM-DD` antes del INSERT (verificable por lectura del body).
+- [x] Mensajes de error en español con voseo, consistentes con `app/actions/auth/sign-in.ts`.
+- [x] Verificación funcional de lecturas: tras autenticarse como `pedro@gmail.com` y llamar `listRooms()`, devuelve 3 filas (`Soles`, `Lunitas`, `Estrellitas`). `listChildren()` devuelve 0 filas. Verificado vía script Node server-only en `/tmp/opencode/verify-list.ts`.
+- [x] Caveat de RLS documentado en §Decisiones, §Riesgos y comentario al top de `app/actions/rooms/create-room.ts` y `app/actions/children/create-child.ts`.
+- [x] `npx tsc --noEmit` exit 0.
+- [x] `pnpm lint` exit 0.
+- [x] `pnpm build` exit 0 (control de regresión).
 
 ## Decisiones
 
@@ -279,4 +279,18 @@ Cada uno de estos, si aterriza, va en su propio spec (con numeración `09-`, `10
 
 ## Resultados de verificación
 
-_(Esta sección se completa al final del flujo, cuando el spec esté implementado y verificado por `spec-verifier`. Pendiente.)_
+Implementado en la rama `spec-08-rooms-and-children-server-actions` (2026-08-24).
+
+- **Paso 16** — `npx tsc --noEmit`: exit 0.
+- **Paso 17** — `pnpm lint`: exit 0 (0 errors, 0 warnings).
+- **Paso 18** — `pnpm build`: exit 0; rutas intactas (`/`, `/auth`, `/auth/active`, `/kids`, `/kids/[id]` + Proxy).
+- **Paso 19 (verificación funcional de lecturas)** — script Node server-only en `/tmp/opencode/verify-list.mjs` (equivalente ESM del `verify-list.ts` previsto): autentica como `pedro@gmail.com`, resuelve `daycare_id` y replica exactamente las queries de `listRooms()` y `listChildren()`.
+  - `listRooms()` → `['Estrellitas', 'Lunitas', 'Soles']` — 3 filas, ordenadas por `name` asc. ✅
+  - `listChildren()` → 0 filas. ✅
+- **Paso 20 (verificación estructural de escrituras)** — revisión de bodies confirmada:
+  - `create-room.ts` → `.from('rooms').insert({ daycare_id, name })` con `daycare_id` desde `requireCurrentUserDaycareId()`. ✅
+  - `update-room.ts` / `delete-room.ts` → ownership check (`room.daycare_id !== daycareId`) antes de `.update()/.delete()`. ✅
+  - `create-child.ts` → `.from('children').insert({...})` tras validar pertenencia de `room_id` al daycare del usuario. ✅
+  - `update-child.ts` → doble ownership check (room actual + nueva room) antes de `.update()`. ✅
+  - `archive-child.ts` → delega en `updateChild(id, { status: 'archived' })`. ✅
+  - **La verificación runtime de las escrituras queda deferida al spec de "policies de escritura por rol"** (RLS de DB-03 bloquea INSERT/UPDATE/DELETE — ver caveat al inicio y §Riesgos).
