@@ -166,7 +166,7 @@ Notas:
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/dbase/03-rooms-and-children-tables.md` en estado `Borrador`.
+- [x] Existe `specs/dbase/03-rooms-and-children-tables.md` en estado `Aprobado` o posterior.
 - [ ] Existe `supabase/migrations/<timestamp>_create_rooms_children.sql` commiteado, con el DDL completo de §Modelo de datos (ENUM + tabla `rooms` + índice + trigger + RLS + policy + tabla `children` + 2 índices + trigger + RLS + policy + seed DO block).
 - [x] `select count(*) from pg_type where typname = 'child_status' and typnamespace = 'public'::regnamespace;` devuelve `1`.
 - [x] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'child_status' order by enumsortorder;` devuelve, en orden, `active`, `archived`.
