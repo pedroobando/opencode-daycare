@@ -279,4 +279,18 @@ Cada uno de estos, si aterriza, va en su propio spec (con numeración `09-`, `10
 
 ## Resultados de verificación
 
-_(Esta sección se completa al final del flujo, cuando el spec esté implementado y verificado por `spec-verifier`. Pendiente.)_
+Implementado en la rama `spec-08-rooms-and-children-server-actions` (2026-08-24).
+
+- **Paso 16** — `npx tsc --noEmit`: exit 0.
+- **Paso 17** — `pnpm lint`: exit 0 (0 errors, 0 warnings).
+- **Paso 18** — `pnpm build`: exit 0; rutas intactas (`/`, `/auth`, `/auth/active`, `/kids`, `/kids/[id]` + Proxy).
+- **Paso 19 (verificación funcional de lecturas)** — script Node server-only en `/tmp/opencode/verify-list.mjs` (equivalente ESM del `verify-list.ts` previsto): autentica como `pedro@gmail.com`, resuelve `daycare_id` y replica exactamente las queries de `listRooms()` y `listChildren()`.
+  - `listRooms()` → `['Estrellitas', 'Lunitas', 'Soles']` — 3 filas, ordenadas por `name` asc. ✅
+  - `listChildren()` → 0 filas. ✅
+- **Paso 20 (verificación estructural de escrituras)** — revisión de bodies confirmada:
+  - `create-room.ts` → `.from('rooms').insert({ daycare_id, name })` con `daycare_id` desde `requireCurrentUserDaycareId()`. ✅
+  - `update-room.ts` / `delete-room.ts` → ownership check (`room.daycare_id !== daycareId`) antes de `.update()/.delete()`. ✅
+  - `create-child.ts` → `.from('children').insert({...})` tras validar pertenencia de `room_id` al daycare del usuario. ✅
+  - `update-child.ts` → doble ownership check (room actual + nueva room) antes de `.update()`. ✅
+  - `archive-child.ts` → delega en `updateChild(id, { status: 'archived' })`. ✅
+  - **La verificación runtime de las escrituras queda deferida al spec de "policies de escritura por rol"** (RLS de DB-03 bloquea INSERT/UPDATE/DELETE — ver caveat al inicio y §Riesgos).
