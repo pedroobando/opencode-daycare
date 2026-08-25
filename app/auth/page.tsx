@@ -1,11 +1,22 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { AuthLoginForm } from '@/app/components/auth/AuthLoginForm';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 interface AuthPageProps {
   searchParams: Promise<{ email?: string }>;
 }
 
 export default async function AuthPage({ searchParams }: AuthPageProps) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect('/');
+  }
+
   const { email } = await searchParams;
 
   return (
