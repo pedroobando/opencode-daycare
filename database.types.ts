@@ -1,6 +1,7 @@
 // Database types for the open-daycare project.
 //
-// Regenerated from the linked Supabase project (fshwfkppcetvqnrccllq) on 2026-08-24.
+// Regenerated from the linked Supabase project (fshwfkppcetvqnrccllq) on 2026-08-24
+// (SPEC 08 — added `rooms`, `children`, and `Enums.child_status`).
 // To regenerate:
 //   - MCP: call `generate_typescript_types`
 //   - CLI: `supabase gen types typescript --linked --schema=public`
@@ -24,6 +25,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      children: {
+        Row: {
+          allergy_tags: string[]
+          birth_date: string
+          created_at: string
+          enrolled_at: string
+          full_name: string
+          id: string
+          medical_notes: string | null
+          photo_consent: boolean
+          room_id: string
+          status: Database["public"]["Enums"]["child_status"]
+          updated_at: string
+        }
+        Insert: {
+          allergy_tags?: string[]
+          birth_date: string
+          created_at?: string
+          enrolled_at?: string
+          full_name: string
+          id?: string
+          medical_notes?: string | null
+          photo_consent?: boolean
+          room_id: string
+          status?: Database["public"]["Enums"]["child_status"]
+          updated_at?: string
+        }
+        Update: {
+          allergy_tags?: string[]
+          birth_date?: string
+          created_at?: string
+          enrolled_at?: string
+          full_name?: string
+          id?: string
+          medical_notes?: string | null
+          photo_consent?: boolean
+          room_id?: string
+          status?: Database["public"]["Enums"]["child_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daycares: {
         Row: {
           created_at: string
@@ -44,6 +95,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          daycare_id: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daycare_id: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daycare_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rooms_daycare_id_fkey"
+            columns: ["daycare_id"]
+            isOneToOne: false
+            referencedRelation: "daycares"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -100,6 +183,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      child_status: "active" | "archived"
       user_role: "staff" | "parent" | "admin"
       user_status: "pending" | "active"
     }
@@ -223,12 +307,17 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export const Constants = {
   public: {
     Enums: {
+      child_status: ["active", "archived"],
       user_role: ["staff", "parent", "admin"],
       user_status: ["pending", "active"],
     },
