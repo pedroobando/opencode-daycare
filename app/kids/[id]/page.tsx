@@ -1,7 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { MobileDrawer } from '@/app/components/feed/MobileDrawer';
 import { Sidebar } from '@/app/components/feed/Sidebar';
 import { KidProfileBody } from '@/app/components/kids/KidProfileBody';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getKidById } from '@/app/lib/kids';
 
 interface KidProfilePageProps {
@@ -9,6 +10,15 @@ interface KidProfilePageProps {
 }
 
 export default async function KidProfilePage({ params }: KidProfilePageProps) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/auth');
+  }
+
   const { id } = await params;
   const kid = getKidById(id);
 
