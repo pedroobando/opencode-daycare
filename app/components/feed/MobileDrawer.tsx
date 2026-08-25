@@ -3,13 +3,19 @@
 import { useEffect, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MenuIcon } from '@/app/components/icons';
+import type { SidebarUser } from '@/lib/supabase/current-user';
 
 interface MobileDrawerProps {
   onNewPost?: () => void;
   triggerRef?: React.RefObject<HTMLButtonElement | null>;
+  currentUser?: SidebarUser | null;
 }
 
-export const MobileDrawer = ({ onNewPost, triggerRef }: MobileDrawerProps) => {
+export const MobileDrawer = ({
+  onNewPost,
+  triggerRef,
+  currentUser,
+}: MobileDrawerProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -46,6 +52,7 @@ export const MobileDrawer = ({ onNewPost, triggerRef }: MobileDrawerProps) => {
         >
           <div onClick={(event) => event.stopPropagation()}>
             <Sidebar
+              currentUser={currentUser}
               onClose={() => setIsOpen(false)}
               onNewPost={() => {
                 setIsOpen(false);
@@ -58,4 +65,4 @@ export const MobileDrawer = ({ onNewPost, triggerRef }: MobileDrawerProps) => {
       )}
     </>
   );
-}
+};
