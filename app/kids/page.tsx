@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/supabase/current-user';
 import { KidsBody } from '@/app/kids/KidsBody';
 
 export default async function KidsPage() {
@@ -12,5 +13,7 @@ export default async function KidsPage() {
     redirect('/auth');
   }
 
-  return <KidsBody />;
+  const currentUser = await getCurrentUser();
+
+  return <KidsBody currentUser={currentUser} />;
 }

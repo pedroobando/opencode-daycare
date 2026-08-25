@@ -3,6 +3,7 @@ import { MobileDrawer } from '@/app/components/feed/MobileDrawer';
 import { Sidebar } from '@/app/components/feed/Sidebar';
 import { KidProfileBody } from '@/app/components/kids/KidProfileBody';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/supabase/current-user';
 import { getKidById } from '@/app/lib/kids';
 
 interface KidProfilePageProps {
@@ -26,15 +27,17 @@ export default async function KidProfilePage({ params }: KidProfilePageProps) {
     notFound();
   }
 
+  const currentUser = await getCurrentUser();
+
   return (
     <div className="flex min-h-screen">
       <div className="hidden lg:flex">
-        <Sidebar />
+        <Sidebar currentUser={currentUser} />
       </div>
 
       <main className="h-screen min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[820px] px-6 pb-20 pt-8 sm:px-10">
-          <MobileDrawer />
+          <MobileDrawer currentUser={currentUser} />
 
           <KidProfileBody kid={kid} />
         </div>

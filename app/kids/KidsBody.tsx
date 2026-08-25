@@ -10,6 +10,7 @@ import { KidCard } from '@/app/components/kids/KidCard';
 import { AddKidModal } from '@/app/components/kids/AddKidModal';
 import { rooms, kids } from '@/app/lib/kids';
 import type { Kid } from '@/app/lib/kids';
+import type { SidebarUser } from '@/lib/supabase/current-user';
 
 const normalize = (text: string): string => {
   return text
@@ -18,7 +19,7 @@ const normalize = (text: string): string => {
     .toLowerCase();
 };
 
-export const KidsBody = () => {
+export const KidsBody = ({ currentUser }: { currentUser?: SidebarUser | null }) => {
   const [query, setQuery] = useState('');
   const [kidsList, setKidsList] = useState<Kid[]>(kids);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,12 +48,12 @@ export const KidsBody = () => {
   return (
     <div className="flex min-h-screen">
       <div className="hidden lg:flex">
-        <Sidebar />
+        <Sidebar currentUser={currentUser} />
       </div>
 
       <main className="h-screen min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[880px] px-6 pb-20 pt-8 sm:px-10">
-          <MobileDrawer />
+          <MobileDrawer currentUser={currentUser} />
 
           <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
