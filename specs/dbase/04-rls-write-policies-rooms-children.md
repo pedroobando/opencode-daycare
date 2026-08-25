@@ -1,6 +1,6 @@
 # SPEC 04 (DB) — Policies RLS de escritura para `rooms` y `children` (staff/admin)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Folder:** `specs/dbase/` (DB-04)
 > **Depende de:** SPEC DB-03 (tablas `rooms` y `children` con RLS SELECT abierto), SPEC DB-02 (tabla `users` con ENUM `user_role`)
 > **Fecha:** 2026-08-25
@@ -197,7 +197,7 @@ Notas:
 - [x] `get_advisors` (MCP) no reporta ERROR nuevos sobre `public.rooms` o `public.children` después del DDL.
 - [x] **Si el usuario de prueba tiene role `staff`/`admin`:** `createChild(...)` autenticado como `pedro@gmail.com` ejecuta INSERT y devuelve 1 fila. `archiveChild(...)` y `deleteRoom(...)` ejecutan UPDATE/DELETE y afectan 1 fila cada uno.
 - [x] **Si el usuario de prueba tiene role `parent`:** N/A — `pedro@gmail.com` tiene role `staff`; la verificación funcional se ejecutó completa (ver §Resultados).
-- [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración. _(pendiente del commit del usuario)_
+- [x] `git log -1 -- supabase/migrations/` muestra el commit con la migración. (commit `40ea76e`, verificado 2026-08-25)
 
 ## Decisiones
 
@@ -280,3 +280,18 @@ Nota sobre el conteo de salas: al simular sesión con la sala extranjera tempora
 ### Pendiente
 
 - Commit del usuario: migración + spec (criterio `git log -1 -- supabase/migrations/`).
+
+### Reverificación (2026-08-25)
+
+Re-ejecutados todos los criterios de aceptación contra el proyecto live (`fshwfkppcetvqnrccllq`):
+
+- Migración `supabase/migrations/20260825120000_rls_write_policies_rooms_children.sql` presente en disco con los 6 `create policy` + 6 `drop policy if exists`, DDL idéntico a §Modelo de datos. ✅
+- `pg_policy`: 4 policies por tabla; nombres y `polcmd` exactos (`rooms_select_authenticated`/`r`, `rooms_insert_staff_admin`/`a`, `rooms_update_staff_admin`/`w`, `rooms_delete_staff_admin`/`d`; ídem `children_*`). ✅
+- Las 8 policies tienen `authenticated` en `polroles`. ✅
+- Predicados verificados vía `pg_get_expr`: todos usan `( SELECT auth.uid())` (initplan); UPDATE de ambas tablas tiene `USING` + `WITH CHECK`; UPDATE de `children` valida el `room_id` resultante. ✅
+- Grants: `authenticated` tiene `SELECT, INSERT, UPDATE, DELETE` (+ `REFERENCES, TRIGGER, TRUNCATE`) en ambas tablas. ✅
+- `get_advisors`: security 0 ERRORs (solo WARNs heredados: `set_updated_at` search_path, `handle_new_user` / `rls_auto_enable` SECURITY DEFINER, leaked password protection); performance solo INFO `unused_index` sobre `users_role_idx`. Nada nuevo sobre `rooms`/`children`. ✅
+- Usuario de prueba: `pedro@gmail.com` → role `staff`, daycare `6dc22d1a-3e45-4f25-a47c-82bf0371ad7d` — aplica la rama funcional del criterio 11 (ya ejecutada en la verificación original). ✅
+- `git log`: commit `40ea76e` "Paso 1 - feat: add RLS policies for INSERT/UPDATE/DELETE on rooms and children…" contiene la migración. ✅
+
+**Resultado: 12/12 criterios pasan.**
