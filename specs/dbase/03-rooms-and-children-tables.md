@@ -168,24 +168,24 @@ Notas:
 
 - [ ] Existe `specs/dbase/03-rooms-and-children-tables.md` en estado `Borrador`.
 - [ ] Existe `supabase/migrations/<timestamp>_create_rooms_children.sql` commiteado, con el DDL completo de §Modelo de datos (ENUM + tabla `rooms` + índice + trigger + RLS + policy + tabla `children` + 2 índices + trigger + RLS + policy + seed DO block).
-- [ ] `select count(*) from pg_type where typname = 'child_status' and typnamespace = 'public'::regnamespace;` devuelve `1`.
-- [ ] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'child_status' order by enumsortorder;` devuelve, en orden, `active`, `archived`.
-- [ ] `select count(*) from information_schema.tables where table_schema = 'public' and table_name in ('rooms', 'children');` devuelve `2`.
-- [ ] `select relrowsecurity from pg_class where relname = 'rooms' and relnamespace = 'public'::regnamespace;` devuelve `true`.
-- [ ] `select relrowsecurity from pg_class where relname = 'children' and relnamespace = 'public'::regnamespace;` devuelve `true`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.rooms'::regclass;` devuelve exactamente `1`.
-- [ ] `select count(*) from pg_policy where polrelid = 'public.children'::regclass;` devuelve exactamente `1`.
-- [ ] Esas 2 policies tienen `polcmd = 'r'` y rol `authenticated` (consulta `pg_policy` + `pg_roles` con `ANY(p.polroles)`).
-- [ ] `select count(*) from pg_policy where polrelid in ('public.rooms'::regclass, 'public.children'::regclass) and polcmd in ('i','w','d');` devuelve `0`.
-- [ ] `select count(*) from pg_trigger where tgname in ('rooms_set_updated_at','children_set_updated_at') and tgrelid in ('public.rooms'::regclass, 'public.children'::regclass);` devuelve `2`.
-- [ ] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'rooms' and indexname = 'rooms_daycare_id_idx';` devuelve `1`.
-- [ ] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'children' and indexname in ('children_room_id_idx', 'children_status_idx');` devuelve `2`.
-- [ ] `select count(*) from public.rooms r join public.daycares d on d.id = r.daycare_id where d.name = 'Sala Soles' and r.name in ('Soles', 'Lunitas', 'Estrellitas');` devuelve `3`.
-- [ ] `select count(*) from public.rooms;` devuelve `3` (solo estas 3 salas existen en MVP).
-- [ ] `select count(*) from public.children;` devuelve `0` (sin seed de niños en este spec).
-- [ ] `select count(*) from information_schema.role_table_grants where table_schema = 'public' and table_name in ('rooms','children') and grantee = 'authenticated' and privilege_type = 'SELECT';` devuelve al menos `2`.
-- [ ] `get_advisors` (MCP) no reporta issues críticos (ERROR) sobre `public.rooms`, `public.children` o `public.child_status` después de aplicar el DDL.
-- [ ] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; control de regresión).
+- [x] `select count(*) from pg_type where typname = 'child_status' and typnamespace = 'public'::regnamespace;` devuelve `1`.
+- [x] `select enumlabel from pg_enum e join pg_type t on e.enumtypid = t.oid where t.typname = 'child_status' order by enumsortorder;` devuelve, en orden, `active`, `archived`.
+- [x] `select count(*) from information_schema.tables where table_schema = 'public' and table_name in ('rooms', 'children');` devuelve `2`.
+- [x] `select relrowsecurity from pg_class where relname = 'rooms' and relnamespace = 'public'::regnamespace;` devuelve `true`.
+- [x] `select relrowsecurity from pg_class where relname = 'children' and relnamespace = 'public'::regnamespace;` devuelve `true`.
+- [x] `select count(*) from pg_policy where polrelid = 'public.rooms'::regclass;` devuelve exactamente `1`.
+- [x] `select count(*) from pg_policy where polrelid = 'public.children'::regclass;` devuelve exactamente `1`.
+- [x] Esas 2 policies tienen `polcmd = 'r'` y rol `authenticated` (consulta `pg_policy` + `pg_roles` con `ANY(p.polroles)`).
+- [x] `select count(*) from pg_policy where polrelid in ('public.rooms'::regclass, 'public.children'::regclass) and polcmd in ('i','w','d');` devuelve `0`.
+- [x] `select count(*) from pg_trigger where tgname in ('rooms_set_updated_at','children_set_updated_at') and tgrelid in ('public.rooms'::regclass, 'public.children'::regclass);` devuelve `2`.
+- [x] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'rooms' and indexname = 'rooms_daycare_id_idx';` devuelve `1`.
+- [x] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'children' and indexname in ('children_room_id_idx', 'children_status_idx');` devuelve `2`.
+- [x] `select count(*) from public.rooms r join public.daycares d on d.id = r.daycare_id where d.name = 'Sala Soles' and r.name in ('Soles', 'Lunitas', 'Estrellitas');` devuelve `3`.
+- [x] `select count(*) from public.rooms;` devuelve `3` (solo estas 3 salas existen en MVP).
+- [x] `select count(*) from public.children;` devuelve `0` (sin seed de niños en este spec).
+- [x] `select count(*) from information_schema.role_table_grants where table_schema = 'public' and table_name in ('rooms','children') and grantee = 'authenticated' and privilege_type = 'SELECT';` devuelve al menos `2`.
+- [x] `get_advisors` (MCP) no reporta issues críticos (ERROR) sobre `public.rooms`, `public.children` o `public.child_status` después de aplicar el DDL.
+- [x] `pnpm lint` y `npx tsc --noEmit` siguen verdes (la app Next.js no cambia en este spec; control de regresión).
 - [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
 
 ## Decisiones
@@ -244,3 +244,64 @@ Notas:
 - Soft-delete o reasignación masiva de niños entre salas (vía UI).
 
 Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/dbase/` (con numeración `04-`, `05-`, …) o en `specs/` (si toca UI / app).
+
+## Resultados de verificación
+
+**Fecha:** 2026-08-24
+**Verificador:** spec-verifier (subagente)
+**Proyecto:** `open-daycare` (Supabase ref `fshwfkppcetvqnrccllq`)
+**Rama:** `spec-03-rooms-and-children-tables`
+
+### Resumen
+
+- ✅ Pasados: **19 / 21**
+- ❌ Fallidos: **2 / 21**
+- ⚠️ Advertencias: 0
+- **Estado global:** **PARTIAL** — la base de datos está correctamente creada y todos los criterios técnicos de catálogo/SQL pasan, pero dos criterios documentales/de control de versiones fallan.
+
+### Resultados por criterio
+
+| # | Criterio | Estado | Evidencia |
+|---|----------|--------|-----------|
+| 1 | Spec existe en estado `Borrador` | ❌ | El archivo existe pero su estado es `aprobado` (línea 3). El criterio es **stale**: refleja el estado inicial del spec, no el actual. Considerar actualizarlo a "existe en estado `Aprobado` o `Implementado`" para reflejar el flujo real del workflow (`Borrador → En revisión → Aprobado → Implementado`). |
+| 2 | Migración SQL commiteada con DDL completo | ❌ | `supabase/migrations/20260824150000_create_rooms_children.sql` existe en disco (87 líneas, coincide semánticamente con §Modelo de datos) pero está **untracked** (`git status` lo lista como archivo sin seguimiento). El commit `a3fe600` ("Paso 0 - feat(db): create rooms and children tables...") incluye el spec pero **no la migración**. |
+| 3 | ENUM `child_status` existe | ✅ | `pg_type` count = `1` en `public`. |
+| 4 | ENUM values `active`, `archived` en orden | ✅ | `pg_enum` retorna `["active","archived"]` ordenado por `enumsortorder`. |
+| 5 | Tablas `rooms` y `children` existen | ✅ | `information_schema.tables` count = `2`. |
+| 6 | RLS habilitado en `rooms` | ✅ | `relrowsecurity = true`. |
+| 7 | RLS habilitado en `children` | ✅ | `relrowsecurity = true`. |
+| 8 | 1 policy en `rooms` | ✅ | `pg_policy` count = `1` (`rooms_select_authenticated`). |
+| 9 | 1 policy en `children` | ✅ | `pg_policy` count = `1` (`children_select_authenticated`). |
+| 10 | Policies con `polcmd = SELECT` y rol `authenticated` | ✅ | Ambas policies: `polcmd = 'r'`, `polroles = {authenticated}`, `using_clause = true` (const bool). |
+| 11 | 0 policies de escritura | ✅ | `polcmd in ('a','w','d')` count = `0`. Nota menor: la consulta del spec usa `'i','w','d'` pero `polcmd` no tiene valor `'i'` en Postgres (INSERT es `'a'`); ambas interpretaciones devuelven `0`, semánticamente equivalente. |
+| 12 | Triggers `set_updated_at` en ambas tablas | ✅ | `pg_trigger` count = `2` (`rooms_set_updated_at`, `children_set_updated_at`). Función `public.set_updated_at()` reusada de DB-02. |
+| 13 | Índice `rooms_daycare_id_idx` | ✅ | `pg_indexes` count = `1`. |
+| 14 | Índices `children_room_id_idx`, `children_status_idx` | ✅ | `pg_indexes` count = `2`. |
+| 15 | Seed: 3 salas en `Sala Soles` | ✅ | `Soles`, `Lunitas`, `Estrellitas` vinculados al daycare `Sala Soles` (FK válida). |
+| 16 | Total `rooms` = 3 | ✅ | Solo las 3 salas semilla existen. |
+| 17 | Total `children` = 0 | ✅ | Sin seed de niños en este spec. |
+| 18 | Grants `SELECT` a `authenticated` | ✅ | `information_schema.role_table_grants` retorna 2 filas (1 por tabla). |
+| 19 | `get_advisors` sin issues críticos sobre `rooms`/`children`/`child_status` | ✅ | Solo `WARN` heredados (`function_search_path_mutable` sobre `set_updated_at`; `security_definer` sobre `handle_new_user`/`rls_auto_enable`; `auth_leaked_password_protection`) y `INFO` `unused_index` (esperable: tablas recién creadas, sin queries aún). **Ningún ERROR** sobre los objetos de este spec. Documentado en §Riesgos. |
+| 20 | `pnpm lint` y `npx tsc --noEmit` verdes | ✅ | Ambos exit `0`. La app Next.js no cambió en este spec (control de regresión OK). |
+| 21 | `git log -1 -- supabase/migrations/` muestra el commit con la migración | ❌ | `git log -- supabase/migrations/20260824150000_create_rooms_children.sql` no retorna nada — el archivo nunca fue commiteado. Vinculado al fallo del criterio #2. |
+
+### Validaciones adicionales (fuera de la lista de criterios)
+
+- **Dependencias (paso 2 del plan):** `Sala Soles` existe (1 fila), `public.set_updated_at()` existe (1 fila), `pgcrypto` activo (1 fila) — todas OK.
+- **FK `ON DELETE RESTRICT`:** `rooms_daycare_id_fkey` y `children_room_id_fkey` definidas con `ON DELETE RESTRICT` según spec.
+- **Defaults de `children`:** `enrolled_at = CURRENT_DATE`, `allergy_tags = '{}'::text[]`, `photo_consent = true`, `status = 'active'::child_status` — todos correctos.
+- **Coincidencia con doc de schema (`../07-DB-Schema`):** Las tablas `rooms` y `children` y el ENUM `child_status` en la DB live coinciden con la sección 3 y 4 del doc de schema de referencia.
+
+### Notas por criterio fallido
+
+1. **Criterio #1 (stale):** El spec evolucionó de `Borrador` a `aprobado` (correctamente, según el workflow), pero la lista de criterios de aceptación no se actualizó. Acción sugerida: cambiar el criterio a "existe en estado `Aprobado` o posterior" o añadir un criterio equivalente que verifique el estado actual.
+2. **Criterios #2 y #21 (migración no commiteada):** El archivo de migración fue creado en el filesystem pero `git add`/`git commit` nunca se ejecutó. El commit `a3fe600` commiteó el spec y `specs/08-rooms-and-children-server-actions.md` pero olvidó `supabase/migrations/20260824150000_create_rooms_children.sql`. Acción concreta:
+   ```bash
+   git add supabase/migrations/20260824150000_create_rooms_children.sql
+   git commit -m "feat(db): add rooms and children migration file"
+   ```
+   (El commit `a3fe600` ya cubre el lado "aprobado", pero la migración debe vivir en git para que `supabase db push` desde main pueda replicar el schema en otros entornos.)
+
+### Conclusión
+
+El spec está **implementado correctamente en la base de datos live** (todos los objetos, grants, RLS, políticas, triggers, índices y seed están en su lugar y coinciden con el DDL del spec). Los dos criterios que fallan son **documentales / de control de versiones**: el spec está en estado `aprobado` (no `Borrador`) y la migración no fue commiteada. Ningún fallo afecta el comportamiento de runtime de la app o de RLS — el DB está listo para que SPEC 08 (`rooms-and-children-server-actions`) enchufe los server actions tipados.
