@@ -10,6 +10,7 @@ import { CreatePostModal } from '@/app/components/feed/CreatePostModal';
 import { posts } from '@/app/lib/posts';
 import type { Post } from '@/app/lib/posts';
 import { kids } from '@/app/lib/kids';
+import type { SidebarUser } from '@/lib/supabase/current-user';
 
 const formatDate = (date: Date): string => {
   const formatter = new Intl.DateTimeFormat('es', {
@@ -26,7 +27,11 @@ const formatDate = (date: Date): string => {
   return `${weekday} ${day} ${month}`;
 };
 
-export const FeedBody = () => {
+interface FeedBodyProps {
+  currentUser?: SidebarUser | null;
+}
+
+export const FeedBody = ({ currentUser }: FeedBodyProps) => {
   const [postsList, setPostsList] = useState<Post[]>(posts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -39,6 +44,8 @@ export const FeedBody = () => {
 
   const today = new Date();
   const dateLabel = formatDate(today);
+  const firstName =
+    currentUser?.fullName.trim().split(/\s+/)[0] ?? 'amigo';
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -55,18 +62,26 @@ export const FeedBody = () => {
   return (
     <div className="flex min-h-screen">
       <div className="hidden lg:flex">
-        <Sidebar onNewPost={handleOpenModal} triggerRef={triggerRef} />
+        <Sidebar
+          currentUser={currentUser}
+          onNewPost={handleOpenModal}
+          triggerRef={triggerRef}
+        />
       </div>
 
       <main className="h-screen min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[760px] px-6 pb-20 pt-8 sm:px-10">
-          <MobileDrawer onNewPost={handleOpenModal} triggerRef={triggerRef} />
+          <MobileDrawer
+            currentUser={currentUser}
+            onNewPost={handleOpenModal}
+            triggerRef={triggerRef}
+          />
           <header className="mb-6">
             <div className="mb-1 text-xs font-extrabold uppercase tracking-wide text-primary">
               GUARDERÍA · SALA SOLES
             </div>
             <h1 className="font-display text-[30px] font-semibold text-foreground">
-              Buenas, Caro
+              Buenas, {firstName}
             </h1>
             <p className="mt-1 text-[14.5px] text-muted-light">
               12 niños · {dateLabel}

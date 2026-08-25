@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { FeedBody } from '@/app/components/feed/FeedBody';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/supabase/current-user';
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -12,5 +13,7 @@ export default async function HomePage() {
     redirect('/auth');
   }
 
-  return <FeedBody />;
+  const currentUser = await getCurrentUser();
+
+  return <FeedBody currentUser={currentUser} />;
 }
