@@ -1,28 +1,70 @@
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { CheckIcon, LogoIcon } from '@/app/components/icons';
 import { isValidEmail } from '@/app/utils/email';
+import { activateInvitation, type ActivateInvitationState } from '@/app/actions/auth';
+
+const INITIAL_STATE: ActivateInvitationState = { error: null };
+const MIN_PASSWORD_LENGTH = 8;
+const MIN_FULL_NAME_LENGTH = 2;
 
 export const AuthActiveBody = () => {
-  const router = useRouter();
+  const [state, formAction] = useActionState(activateInvitation, INITIAL_STATE);
+  const [code, setCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [email, setEmail] = useState('lucia.fernandez@gmail.com');
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{
+    code?: string;
+    email?: string;
+    fullName?: string;
+    password?: string;
+  }>({});
 
-  const handleActivate = () => {
+  const handleValidateBefore = (event: React.FormEvent<HTMLFormElement>) => {
+    const nextErrors: {
+      code?: string;
+      email?: string;
+      fullName?: string;
+      password?: string;
+    } = {};
+    const trimmedCode = code.trim();
     const trimmedEmail = email.trim();
+    const trimmedFullName = fullName.trim();
 
+    if (trimmedCode === '') {
+      nextErrors.code = 'Ingresá el código de invitación.';
+    }
+    if (trimmedFullName.length < MIN_FULL_NAME_LENGTH) {
+      nextErrors.fullName = 'Ingresá tu nombre.';
+    }
     if (!isValidEmail(trimmedEmail)) {
-      setEmailError('Ingresá un email válido.');
-      return;
+      nextErrors.email = 'Ingresá un email válido.';
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      nextErrors.password = 'La contraseña debe tener al menos 8 caracteres.';
     }
 
-    setEmailError(null);
-    router.push(`/auth?email=${encodeURIComponent(trimmedEmail)}`);
+    setErrors(nextErrors);
+
+    if (
+      trimmedCode === '' ||
+      trimmedFullName.length < MIN_FULL_NAME_LENGTH ||
+      !isValidEmail(trimmedEmail) ||
+      password.length < MIN_PASSWORD_LENGTH
+    ) {
+      event.preventDefault();
+    }
   };
+
+  const inputBaseClasses =
+    'w-full rounded-2xl border border-card-border bg-white px-4 py-3.5 text-foreground outline-none placeholder:text-placeholder-text';
+
+  const labelClasses =
+    'mb-2 block text-xs font-bold tracking-widest text-muted';
 
   return (
     <div className="w-full max-w-[440px]">
@@ -50,28 +92,66 @@ export const AuthActiveBody = () => {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <form action={formAction} onSubmit={handleValidateBefore} className="space-y-4">
+        <div aria-live="polite" className="sr-only">
+          {Object.values(errors).some(Boolean) && 'Hay errores en el formulario.'}
+        </div>
+
+        {state.error !== null && (
+          <p className="text-[12.5px] text-[#D9583C]">{state.error}</p>
+        )}
+
         <div>
-          <label
-            htmlFor="invitation-code"
-            className="mb-2 block text-xs font-bold tracking-widest text-muted"
-          >
+          <label htmlFor="code" className={labelClasses}>
             CÓDIGO DE INVITACIÓN
           </label>
           <input
-            id="invitation-code"
-            name="invitation-code"
+            id="code"
+            name="code"
             type="text"
-            defaultValue="7K4P9"
-            className="w-full rounded-2xl border border-card-border bg-white px-4 py-3.5 font-display text-lg font-bold tracking-widest text-foreground"
+            value={code}
+            onChange={(event) => {
+              setCode(event.target.value.toUpperCase());
+              setErrors((previous) => ({ ...previous, code: undefined }));
+            }}
+            aria-invalid={errors.code ? 'true' : 'false'}
+            aria-describedby={errors.code ? 'code-error' : undefined}
+            className={`${inputBaseClasses} font-display text-lg font-bold tracking-widest text-foreground`}
           />
+          {errors.code && (
+            <p id="code-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+              {errors.code}
+            </p>
+          )}
         </div>
 
         <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block text-xs font-bold tracking-widest text-muted"
-          >
+          <label htmlFor="full_name" className={labelClasses}>
+            TU NOMBRE
+          </label>
+          <input
+            id="full_name"
+            name="full_name"
+            type="text"
+            value={fullName}
+            onChange={(event) => {
+              setFullName(event.target.value);
+              setErrors((previous) => ({ ...previous, fullName: undefined }));
+            }}
+            placeholder="Ej. Lucía Fernández"
+            aria-invalid={errors.fullName ? 'true' : 'false'}
+            aria-describedby={errors.fullName ? 'full_name-error' : undefined}
+            className={inputBaseClasses}
+          />
+          {errors.fullName && (
+            <p id="full_name-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+              {errors.fullName}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="email" className={labelClasses}>
             EMAIL
           </label>
           <input
@@ -81,59 +161,72 @@ export const AuthActiveBody = () => {
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);
-              setEmailError(null);
+              setErrors((previous) => ({ ...previous, email: undefined }));
             }}
-            className="w-full rounded-2xl border border-card-border bg-white px-4 py-3.5 text-foreground"
+            placeholder="correo@ejemplo.com"
+            aria-invalid={errors.email ? 'true' : 'false'}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            className={inputBaseClasses}
           />
-          {emailError && (
-            <p className="mt-1 text-[12.5px] text-[#D9583C]">{emailError}</p>
+          {errors.email && (
+            <p id="email-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+              {errors.email}
+            </p>
           )}
         </div>
 
         <div>
-          <label
-            htmlFor="password"
-            className="mb-2 block text-xs font-bold tracking-widest text-muted"
-          >
+          <label htmlFor="password" className={labelClasses}>
             CREAR CONTRASEÑA
           </label>
           <input
             id="password"
             name="password"
             type="password"
-            defaultValue="contraseña"
-            className="w-full rounded-2xl border border-card-border bg-white px-4 py-3.5 text-foreground"
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setErrors((previous) => ({ ...previous, password: undefined }));
+            }}
+            placeholder="Mínimo 8 caracteres"
+            aria-invalid={errors.password ? 'true' : 'false'}
+            aria-describedby={errors.password ? 'password-error' : undefined}
+            className={inputBaseClasses}
           />
+          {errors.password && (
+            <p id="password-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+              {errors.password}
+            </p>
+          )}
         </div>
-      </div>
 
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={isAuthorized}
-        onClick={() => setIsAuthorized((previous) => !previous)}
-        className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl bg-[#FBF1D6] p-4 text-left"
-      >
-        <span
-          className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-lg border-2 border-[#5FB97E] ${
-            isAuthorized ? 'bg-[#5FB97E]' : 'bg-transparent'
-          }`}
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={isAuthorized}
+          onClick={() => setIsAuthorized((previous) => !previous)}
+          className="flex cursor-pointer items-start gap-3 rounded-2xl bg-[#FBF1D6] p-4 text-left"
         >
-          {isAuthorized && <CheckIcon className="h-4 w-4 text-white" />}
-        </span>
-        <span className="text-sm leading-snug text-[#8A7234]">
-          Autorizo a la guardería a tomar y compartir fotos de mi hijo dentro de
-          la app.
-        </span>
-      </button>
+          <span
+            className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-lg border-2 border-[#5FB97E] ${
+              isAuthorized ? 'bg-[#5FB97E]' : 'bg-transparent'
+            }`}
+          >
+            {isAuthorized && <CheckIcon className="h-4 w-4 text-white" />}
+          </span>
+          <span className="text-sm leading-snug text-[#8A7234]">
+            Autorizo a la guardería a tomar y compartir fotos de mi hijo dentro de
+            la app.
+          </span>
+        </button>
 
-      <button
-        type="button"
-        onClick={handleActivate}
-        className="mt-6 flex w-full items-center justify-center rounded-[15px] bg-gradient-to-b from-primary-gradient-start to-primary-gradient-end py-3.5 text-center text-base font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,0.7)]"
-      >
-        Activar mi cuenta
-      </button>
+        <button
+          type="submit"
+          className="flex w-full items-center justify-center rounded-[15px] bg-gradient-to-b from-primary-gradient-start to-primary-gradient-end py-3.5 text-center text-base font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,0.7)]"
+        >
+          Activar mi cuenta
+        </button>
+      </form>
 
       <p className="mt-6 text-center text-[14.5px] text-muted">
         ¿Ya tenés cuenta?{' '}

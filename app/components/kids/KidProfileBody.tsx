@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AllergyAlert } from '@/app/components/kids/AllergyAlert';
 import { InactiveLink } from '@/app/components/kids/InactiveLink';
@@ -8,7 +8,10 @@ import { KidProfileHeader } from '@/app/components/kids/KidProfileHeader';
 import { ParentsList } from '@/app/components/kids/ParentsList';
 import { LinkParentModal } from '@/app/components/kids/LinkParentModal';
 import { ArrowLeftIcon, LogoIcon } from '@/app/components/icons';
+import { pickNextColor } from '@/app/utils/avatar-colors';
 import type { Kid, Parent } from '@/app/lib/kids';
+import type { ParentChildWithUser } from '@/app/actions/parent-children';
+import { listParentsByChild } from '@/app/actions/parent-children';
 
 interface KidProfileBodyProps {
   kid: Kid;
@@ -31,10 +34,59 @@ const formatMonthYear = (isoDate: string): string => {
   }).format(date);
 };
 
+const ROLE_LABEL: Record<ParentChildWithUser['relationship'], string> = {
+  father: 'Papá',
+  mother: 'Mamá',
+  guardian: 'Tutor/a',
+};
+
+const parentChildToViewModel = (
+  link: ParentChildWithUser,
+  existing: Parent[],
+): Parent | null => {
+  const fullName = link.users?.full_name ?? '';
+  if (fullName === '') {
+    return null;
+  }
+
+  return {
+    id: link.id,
+    name: fullName,
+    role: ROLE_LABEL[link.relationship],
+    status: 'active',
+    initial: fullName.charAt(0).toUpperCase(),
+    color: pickNextColor(existing, (parent) => parent.color),
+  };
+};
+
 export const KidProfileBody = ({ kid }: KidProfileBodyProps) => {
-  const [parents, setParents] = useState<Parent[]>(kid.linkedParents);
+  const [parents, setParents] = useState<Parent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const refreshParents = useCallback(async () => {
+    const rows = await listParentsByChild(kid.id);
+    const next: Parent[] = [];
+    for (const link of rows) {
+      const mapped = parentChildToViewModel(link, next);
+      if (mapped !== null) {
+        next.push(mapped);
+      }
+    }
+    setParents(next);
+  }, [kid.id]);
+
+  useEffect(() => {
+    // SPEC 10 explicitly mandates client-side fetch of parents from
+    // `listParentsByChild` instead of reading them on the server, so the
+    // `revalidatePath('/kids/[id]')` triggered by `createInvitation` /
+    // `cancelInvitation` / `unlinkParent` re-renders this client component
+    // with a fresh list. The Next 16 `react-hooks/set-state-in-effect` rule
+    // flags this pattern as a known anti-pattern, but it is the documented
+    // design choice for this spec (see `specs/10-...md` §Plan paso 16).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    refreshParents();
+  }, [refreshParents]);
 
   const kidFullName = `${kid.firstName} ${kid.lastName}`.trim();
 
@@ -97,8 +149,7 @@ export const KidProfileBody = ({ kid }: KidProfileBodyProps) => {
         onClose={() => setIsModalOpen(false)}
         kidId={kid.id}
         kidName={kidFullName}
-        existingParents={parents}
-        onAddParent={(parent) => setParents((previous) => [...previous, parent])}
+        onSuccess={refreshParents}
         triggerRef={triggerRef}
       />
     </>

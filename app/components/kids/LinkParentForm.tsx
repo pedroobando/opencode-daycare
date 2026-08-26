@@ -1,20 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { SendIcon } from '@/app/components/icons';
 import { isValidEmail } from '@/app/utils/email';
-
-export interface LinkParentFormPayload {
-  name: string;
-  email: string;
-  role: string;
-}
+import type { CreateInvitationState } from '@/app/actions/invitations';
 
 interface LinkParentFormProps {
+  kidId: string;
   open: boolean;
-  invitationCode: string;
+  formAction: (payload: FormData) => void;
+  state: CreateInvitationState;
   onCancel: () => void;
-  onSubmit: (payload: LinkParentFormPayload) => void;
+  onSubmitAttempted: () => void;
 }
 
 interface FormErrors {
@@ -23,12 +21,33 @@ interface FormErrors {
   role?: string;
 }
 
-const ROLE_OPTIONS = ['Mamá', 'Papá', 'Tutor/a'] as const;
+const ROLE_OPTIONS = [
+  { label: 'Mamá', value: 'mother' },
+  { label: 'Papá', value: 'father' },
+  { label: 'Tutor/a', value: 'guardian' },
+] as const;
+
+const SubmitButton = () => {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="flex w-full items-center justify-center gap-2 rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] py-[11px] text-center text-[15.5px] font-extrabold text-white disabled:opacity-60"
+    >
+      <SendIcon className="h-[18px] w-[18px]" />
+      {pending ? 'Enviando…' : 'Enviar invitación'}
+    </button>
+  );
+};
 
 export const LinkParentForm = ({
+  kidId,
   open,
-  invitationCode,
-  onSubmit,
+  formAction,
+  state,
+  onCancel,
+  onSubmitAttempted,
 }: LinkParentFormProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,7 +58,7 @@ export const LinkParentForm = ({
     return null;
   }
 
-  const handleSubmit = () => {
+  const handleValidateBefore = (event: React.FormEvent<HTMLFormElement>) => {
     const nextErrors: FormErrors = {};
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
@@ -58,20 +77,12 @@ export const LinkParentForm = ({
 
     setErrors(nextErrors);
 
-    if (
-      trimmedName === '' ||
-      trimmedEmail === '' ||
-      !isValidEmail(trimmedEmail) ||
-      role === ''
-    ) {
+    if (trimmedName === '' || trimmedEmail === '' || !isValidEmail(trimmedEmail) || role === '') {
+      event.preventDefault();
       return;
     }
 
-    onSubmit({
-      name: trimmedName,
-      email: trimmedEmail,
-      role,
-    });
+    onSubmitAttempted();
   };
 
   const inputBaseClasses =
@@ -81,116 +92,121 @@ export const LinkParentForm = ({
     'mb-2 block text-[12px] font-extrabold uppercase tracking-[0.7px] text-muted-light';
 
   return (
-    <div className="px-5 py-5">
-      <div aria-live="polite" className="sr-only">
-        {Object.values(errors).some(Boolean) && 'Hay errores en el formulario.'}
-      </div>
+    <form action={formAction} onSubmit={handleValidateBefore}>
+      <input type="hidden" name="child_id" value={kidId} />
+      <input type="hidden" name="relationship" value={role} />
 
-      <div className="mb-3">
-        <label htmlFor="parent-name" className={labelClasses}>
-          Nombre del padre/madre
-        </label>
-        <input
-          id="parent-name"
-          type="text"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Ej. Diego Fernández"
-          aria-invalid={errors.name ? 'true' : 'false'}
-          aria-describedby={errors.name ? 'parent-name-error' : undefined}
-          className={inputBaseClasses}
-        />
-        {errors.name && (
-          <p id="parent-name-error" className="mt-1 text-[12.5px] text-[#D9583C]">
-            {errors.name}
-          </p>
+      <div className="px-5 pb-5">
+        <div aria-live="polite" className="sr-only">
+          {Object.values(errors).some(Boolean) && 'Hay errores en el formulario.'}
+        </div>
+
+        {state.error !== null && (
+          <p className="mb-3 text-[12.5px] text-[#D9583C]">{state.error}</p>
         )}
-      </div>
 
-      <div className="mb-3">
-        <label htmlFor="parent-email" className={labelClasses}>
-          Email
-        </label>
-        <input
-          id="parent-email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="correo@ejemplo.com"
-          aria-invalid={errors.email ? 'true' : 'false'}
-          aria-describedby={errors.email ? 'parent-email-error' : undefined}
-          className={inputBaseClasses}
-        />
-        {errors.email && (
-          <p
-            id="parent-email-error"
-            className="mt-1 text-[12.5px] text-[#D9583C]"
+        <div className="mb-3">
+          <label htmlFor="parent-name" className={labelClasses}>
+            Nombre del padre/madre
+          </label>
+          <input
+            id="parent-name"
+            name="full_name"
+            type="text"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Ej. Diego Fernández"
+            aria-invalid={errors.name ? 'true' : 'false'}
+            aria-describedby={errors.name ? 'parent-name-error' : undefined}
+            className={inputBaseClasses}
+          />
+          {errors.name && (
+            <p id="parent-name-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+              {errors.name}
+            </p>
+          )}
+        </div>
+
+        <div className="mb-3">
+          <label htmlFor="parent-email" className={labelClasses}>
+            Email
+          </label>
+          <input
+            id="parent-email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="correo@ejemplo.com"
+            aria-invalid={errors.email ? 'true' : 'false'}
+            aria-describedby={errors.email ? 'parent-email-error' : undefined}
+            className={inputBaseClasses}
+          />
+          {errors.email && (
+            <p
+              id="parent-email-error"
+              className="mt-1 text-[12.5px] text-[#D9583C]"
+            >
+              {errors.email}
+            </p>
+          )}
+        </div>
+
+        <div className="mb-3">
+          <div
+            className={labelClasses}
+            id="parent-role-label"
+            aria-invalid={errors.role ? 'true' : 'false'}
           >
-            {errors.email}
-          </p>
-        )}
+            Parentesco
+          </div>
+          <div
+            role="radiogroup"
+            aria-labelledby="parent-role-label"
+            aria-describedby={errors.role ? 'parent-role-error' : undefined}
+            className="flex gap-9"
+          >
+            {ROLE_OPTIONS.map((option) => {
+              const isSelected = role === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => setRole(option.value)}
+                  className={`flex-1 rounded-[14px] py-[10px] text-center text-[15px] font-extrabold transition-colors ${
+                    isSelected
+                      ? 'border-[1.5px] border-[#9FB8EC] bg-[#CCD8F4] text-[#4E72C8]'
+                      : 'border-[1.5px] border-card-border bg-[#FFFDF9] text-muted-light'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          {errors.role && (
+            <p id="parent-role-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+              {errors.role}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 rounded-[15px] border-[1.5px] border-card-border bg-[#FFFDF9] py-[11px] text-center text-[15.5px] font-extrabold text-muted-light transition-colors hover:text-foreground"
+          >
+            Cancelar
+          </button>
+          <div className="flex-[2]">
+            <SubmitButton />
+          </div>
+        </div>
       </div>
-
-      <div className="mb-3">
-        <div
-          className={labelClasses}
-          id="parent-role-label"
-          aria-invalid={errors.role ? 'true' : 'false'}
-        >
-          Parentesco
-        </div>
-        <div
-          role="radiogroup"
-          aria-labelledby="parent-role-label"
-          aria-describedby={errors.role ? 'parent-role-error' : undefined}
-          className="flex gap-9"
-        >
-          {ROLE_OPTIONS.map((option) => {
-            const isSelected = role === option;
-
-            return (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                onClick={() => setRole(option)}
-                className={`flex-1 rounded-[14px] py-[10px] text-center text-[15px] font-extrabold transition-colors ${
-                  isSelected
-                    ? 'border-[1.5px] border-[#9FB8EC] bg-[#CCD8F4] text-[#4E72C8]'
-                    : 'border-[1.5px] border-card-border bg-[#FFFDF9] text-muted-light'
-                }`}
-              >
-                {option}
-              </button>
-            );
-          })}
-        </div>
-        {errors.role && (
-          <p id="parent-role-error" className="mt-1 text-[12.5px] text-[#D9583C]">
-            {errors.role}
-          </p>
-        )}
-      </div>
-
-      <div className="mb-3 rounded-[14px] border-[1.5px] border-dashed border-[#E6D08A] bg-[#FBF1D6] p-3.5 text-center">
-        <div className="mb-2 text-[12px] font-extrabold uppercase tracking-[0.7px] text-[#A88526]">
-          Código de invitación
-        </div>
-        <div className="font-display text-[28px] font-semibold tracking-[6px] text-[#8A7234]">
-          {invitationCode}
-        </div>
-        <div className="mt-1.5 text-[13px] text-[#A88526]">Vence en 7 días</div>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleSubmit}
-        className="flex w-full items-center justify-center gap-2 rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] py-[11px] text-center text-[15.5px] font-extrabold text-white"
-      >
-        <SendIcon className="h-[18px] w-[18px]" />
-        Enviar invitación
-      </button>
-    </div>
+    </form>
   );
 };
