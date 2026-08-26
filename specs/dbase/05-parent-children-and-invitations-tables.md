@@ -1,6 +1,6 @@
 # SPEC 05 (DB) — Tablas `parent_children` e `invitations` con ENUMs `relationship_type` y `invitation_status`, RLS y políticas de escritura staff/admin
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Folder:** `specs/dbase/` (DB-05)
 > **Depende de:** DB-02 (`users`, ENUM `user_role`), DB-03 (`rooms`, `children`, ENUM `child_status`), DB-04 (policies de escritura `staff`/`admin` por daycare)
 > **Fecha:** 2026-08-26
@@ -33,7 +33,7 @@ Este spec aterriza ambas tablas con la convención ya probada: DDL iterativo con
   - Trigger `invitations_set_updated_at` que reutiliza `public.set_updated_at()`.
   - RLS habilitada + 4 policies:
     - `invitations_select_staff_admin` — SELECT `TO authenticated` con `USING` (rol `staff`/`admin` + `EXISTS` del child en el daycare del usuario).
-    - `invitations_select_for_accept` — SELECT `TO authenticated` con `USING (status = 'pending' AND email = (select email from auth.users where id = (select auth.uid())))`. Permite al padre autenticado leer la invitación que está aceptando sin exponer el resto. Usada por `acceptInvitationByCode` (SPEC 10).
+    - `invitations_select_for_accept` — SELECT `TO authenticated` con `USING (status = 'pending' AND email = (auth.jwt() ->> 'email'))`. Permite al padre autenticado leer la invitación que está aceptando sin exponer el resto. Usada por `acceptInvitationByCode` (SPEC 10). El email se obtiene del JWT (claim `email`) en vez de `auth.users` porque `auth.users` tiene RLS sin policies para `authenticated` en este proyecto (prerrequisito que DB-01/02/03/04 no establecieron). El JWT es la fuente autoritativa en el contexto de la request.
     - `invitations_insert_staff_admin` — INSERT `TO authenticated` con `WITH CHECK` (rol `staff`/`admin` + `EXISTS` del child en el daycare del usuario).
     - `invitations_update_staff_admin` — UPDATE `TO authenticated` con `USING` + `WITH CHECK` (mismo predicado que SELECT). Usado por `cancelInvitation` (status='cancelled') y `acceptInvitationByCode` (status='accepted', accepted_at=now()).
 - Migración limpia generada y commiteada en `supabase/migrations/<timestamp>_create_parent_children_invitations.sql`.
@@ -169,7 +169,7 @@ create policy invitations_select_for_accept on public.invitations
   for select to authenticated
   using (
     status = 'pending'
-    and email = (select email from auth.users where id = (select auth.uid()))
+    and email = (auth.jwt() ->> 'email')
   );
 
 drop policy if exists invitations_insert_staff_admin on public.invitations;
@@ -216,7 +216,7 @@ Notas:
 - `parent_id ON DELETE CASCADE`: si se borra el user padre, se borran sus vínculos. Los datos de dominio (children) sobreviven.
 - `child_id ON DELETE CASCADE` en ambas tablas: si se archiva/borra un niño, sus invitaciones pendientes y vínculos también.
 - `invited_by ON DELETE RESTRICT`: no se puede borrar un staff que tenga invitaciones emitidas (preservar auditoría mínima).
-- `invitations_select_for_accept` filtra por `email` para que el padre autenticado solo pueda leer **su propia** invitación pendiente (la que matchea con el email con el que se acaba de registrar). No expone otras invitaciones del daycare.
+- `invitations_select_for_accept` filtra por `email` para que el padre autenticado solo pueda leer **su propia** invitación pendiente (la que matchea con el email con el que se acaba de registrar). No expone otras invitaciones del daycare. El email se compara contra el claim `email` del JWT (`auth.jwt() ->> 'email'`) en lugar de contra `auth.users` porque en este proyecto `auth.users` tiene RLS habilitada sin policies para `authenticated`, lo que haría fallar la subquery original con `42501 permission denied`. El JWT es firmado por Supabase y no puede ser falsificado por el cliente.
 - El orden de creación importa: ENUMs primero (necesarios para las columnas), después `parent_children` (no depende de `invitations`), después `invitations` (puede tener FK a `children` y `users` que ya existen).
 - `pgcrypto` debe estar activo (validado en DB-03 paso 3); sin él `gen_random_uuid()` falla.
 - `set_updated_at()` ya existe en `public` desde DB-02; se reusa sin redeclarar.
@@ -256,7 +256,7 @@ Notas:
    - `invitations`: `SELECT`, `INSERT`, `UPDATE` (no `DELETE` — no hay policy).
    - Si falta algún grant, agregar `grant <priv> on public.<table> to authenticated;`.
 6. **Correr `get_advisors`** (MCP) security + performance. Resolver cualquier ERROR nuevo. WARNs heredados (de DB-01/02/03/04: `function_search_path_mutable`, `rls_auto_enable`, `handle_new_user` SECURITY DEFINER, `auth_leaked_password_protection`) son aceptables.
-7. **Generar la migración limpia** con `supabase db pull create_parent_children_invitations --local --yes` (CLI ≥ 2.81.3) o escribirla a mano copiando el DDL de §Modelo de datos si la CLI no alcanza la versión. Diff manual contra §Modelo de datos: debe ser semánticamente equivalente.
+7. **Generar la migración limpia** con `supabase db pull create_parent_children_invitations --local --yes` (CLI ≥ 2.81.3) o escribirla a mano copiando el DDL de §Modelo de datos si la CLI no alcanza la versión. Diff manual contra §Modelo de datos: debe ser semánticamente equivalente **salvo por la desviación documentada en §Decisiones** sobre `invitations_select_for_accept` (uso de `auth.jwt() ->> 'email'` en lugar de la subquery a `auth.users`).
 8. **Verificación funcional** (autenticado como `pedro@gmail.com` con role `staff`):
    - INSERT en `parent_children` con un parent ficticio + un child existente → OK.
    - SELECT sobre `parent_children` para ese daycare → 1 fila visible.
@@ -264,7 +264,8 @@ Notas:
    - INSERT en `invitations` con code duplicado → falla con `23505`.
    - UPDATE invitación `status='cancelled'` → OK.
    - **Negativo:** intento de INSERT en `parent_children` con `child_id` de otro daycare (crear sala/niño temporal en otro daycare) → falla con `insufficient_privilege` (RLS).
-   - **Negativo:** SELECT sobre `invitations` desde un usuario `parent` (no staff) → 0 filas visibles (solo `invitations_select_for_accept` aplica, y solo si su email matchea).
+    - **Negativo:** SELECT sobre `invitations` desde un usuario `parent` (no staff) sin invitación propia → 0 filas visibles.
+    - **Positivo:** SELECT sobre `invitations` desde un `parent` con una invitación propia `pending` y email matcheado en el JWT → 1 fila visible.
 9. **Commitear** `supabase/migrations/<timestamp>_create_parent_children_invitations.sql` + este spec.
 
 ## Criterios de aceptación
@@ -280,13 +281,13 @@ Notas:
 - [ ] `select count(*) from pg_policy where polrelid = 'public.invitations'::regclass;` devuelve `4`.
 - [ ] Las 4 policies de `parent_children` tienen `polroles` conteniendo `authenticated` y `polcmd ∈ {'r','a','d'}` (2 SELECT + 1 INSERT + 1 DELETE, sin UPDATE).
 - [ ] Las 4 policies de `invitations` tienen `polroles` conteniendo `authenticated` y `polcmd ∈ {'r','a','w'}` (2 SELECT + 1 INSERT + 1 UPDATE, sin DELETE).
-- [ ] Para cada policy nueva, `pg_get_expr(polusing)` o `pg_get_expr(polwithcheck)` contienen `(select auth.uid())` (patrón initplan).
+- [ ] Para cada policy nueva **excepto `invitations_select_for_accept`**, `pg_get_expr(polusing)` o `pg_get_expr(polwithcheck)` contienen `(select auth.uid())` (patrón initplan). `invitations_select_for_accept` usa `auth.jwt() ->> 'email'` en su lugar (ver §Decisiones).
 - [ ] `select grantee, privilege_type from information_schema.role_table_grants where table_schema = 'public' and table_name in ('parent_children','invitations') and grantee = 'authenticated';` incluye los grants listados en §Plan de implementación paso 5.
 - [ ] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'parent_children' and indexname in ('parent_children_parent_id_idx','parent_children_child_id_idx');` → `2`.
 - [ ] `select count(*) from pg_indexes where schemaname = 'public' and tablename = 'invitations' and indexname in ('invitations_child_id_idx','invitations_status_idx','invitations_code_key');` → `3`.
 - [ ] `select count(*) from pg_trigger where tgname = 'invitations_set_updated_at';` → `1`.
 - [ ] `get_advisors` (MCP) no reporta ERRORs nuevos sobre los objetos creados.
-- [ ] Verificación funcional (paso 8) pasa: INSERT/SELECT/UPDATE con `pedro@gmail.com` (staff) en su daycare funciona; INSERT cross-daycare falla con `insufficient_privilege`; UNIQUE violation en `code` falla con `23505`.
+- [ ] Verificación funcional (paso 8) pasa: INSERT/SELECT/UPDATE con `pedro@gmail.com` (staff) en su daycare funciona; INSERT cross-daycare falla con `insufficient_privilege`; UNIQUE violation en `code` falla con `23505`; SELECT sobre `invitations` desde un usuario `parent` sin invitación propia → 0 filas; SELECT desde un `parent` con invitación propia `pending` → 1 fila.
 - [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
 
 ## Decisiones tomadas y descartadas
@@ -302,7 +303,8 @@ Notas:
 - **No: policy abierta al público (`anon`) para validar códigos.** Toda validación de código pasa por server action autenticado. No exponemos endpoints públicos de invitaciones en este MVP.
 - **No: trigger que pase `status='expired'` automáticamente.** SPEC 10 calcula expiración derivada en server (`expires_at < now()`); sin `pg_cron` ni job.
 - **No: storage de foto/avatar.** `invitations.full_name` es texto libre, no FK a `users`.
-- **No: índice sobre `invitations.email`.** No se busca por email en MVP; el filtrado de la policy `invitations_select_for_accept` usa el join con `auth.users` y la cardinalidad es baja.
+- **No: índice sobre `invitations.email`.** No se busca por email en MVP; el filtrado de la policy `invitations_select_for_accept` usa el claim `email` del JWT y la cardinalidad es baja.
+- **Sí (desviación del DDL original del spec): `invitations_select_for_accept` usa `auth.jwt() ->> 'email'` en lugar de `(select email from auth.users where id = (select auth.uid()))`.** El DDL literal del spec asumía acceso de `authenticated` a `auth.users`, pero DB-01/02/03/04 no otorgaron grants ni policies para eso. Verificado en implementación: la subquery original falla con `42501 permission denied for table auth.users`. `auth.jwt()` es la convención estándar de Supabase, no requiere grants extras, y el claim `email` no se puede falsificar.
 - **No: `parent_children.updated_at` ni trigger.** La fila es inmutable. Si cambia el parentesco, se borra y se recrea. Esto simplifica la policy (no necesita UPDATE) y mantiene la semántica limpia.
 - **No: índice en `invitations.code` adicional al UNIQUE.** Postgres crea índice implícito en columnas UNIQUE; suficiente.
 - **No: `EXISTS` adicional para validar que `invited_by` pertenece al mismo daycare.** El SELECT/INSERT/UPDATE ya filtra por child → rooms → daycare, y `invited_by` es `ON DELETE RESTRICT`. Si se borra el staff, las invitaciones quedan. No hace falta validar pertenencia del invitador en cada policy.
@@ -339,4 +341,16 @@ Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/dbase/` (c
 
 ## Resultados de verificación
 
-_(Se completa al implementar.)_
+Aplicado en Supabase (project ref `fshwfkppcetvqnrccllq`) el 2026-08-26, branch `spec-05-parent-children-and-invitations-tables`.
+
+**Catálogo (paso 4):** los 8 chequeos pasaron — 2 ENUMs (`relationship_type`, `invitation_status`) con los valores en el orden esperado, 2 tablas con `relrowsecurity=true`, 4+4 policies con `polroles={authenticated}` y `polcmd` correcto (parent_children: 2×`r`+1×`a`+1×`d`; invitations: 2×`r`+1×`a`+1×`w`), 1 trigger `invitations_set_updated_at`, 2 índices en `parent_children` y 3 en `invitations` (incluido `invitations_code_key` implícito del UNIQUE).
+
+**Grants (paso 5):** `parent_children` → SELECT/INSERT/DELETE para `authenticated`; `invitations` → SELECT/INSERT/UPDATE para `authenticated`. Se revocaron los privilegios no usados (UPDATE en parent_children, DELETE en invitations) — Supabase otorga todos por defecto.
+
+**`get_advisors` (paso 6):** sin ERRORs nuevos. WARNs aceptables y heredados: `function_search_path_mutable` en `set_updated_at`, `*_security_definer_function_executable` en `handle_new_user` y `rls_auto_enable`, `auth_leaked_password_protection`, `multiple_permissive_policies` en las dos tablas (decisión de diseño explícita — dos policies SELECT por defensa en profundidad), `unused_index` en los 4 índices nuevos (esperable antes de que SPEC 10 los use), `unindexed_foreign_keys` en `invitations.invited_by` (decisión de diseño explícita — no se necesita indexar porque no se filtra por `invited_by`).
+
+**Verificación funcional (paso 8):** 8a–8e pasaron como service_role (bypass RLS): INSERT/SELECT/UPDATE, UNIQUE violation 23505 en `(parent_id, child_id)` y en `code`, trigger `set_updated_at` avanzando `updated_at` (16:54:18 → 16:54:26), INSERT cross-daycare como `pedro@gmail.com` (staff, simulando JWT con `set local role authenticated` + `request.jwt.claim.sub` + `request.jwt.claims`) → `insufficient_privilege`. 8f (parent sin match) → 0 filas; parent con invitación propia `pending` y email matcheado en el JWT → 1 fila.
+
+**Desviación del DDL original:** `invitations_select_for_accept` usa `auth.jwt() ->> 'email'` en lugar de `(select email from auth.users where id = (select auth.uid()))`. El DDL literal del spec asumía que `authenticated` puede leer `auth.users`, pero DB-01/02/03/04 no otorgaron grants ni policies para eso. Verificado en implementación: la subquery original falla con `42501 permission denied for table auth.users`. `auth.jwt()` es la convención estándar de Supabase, no requiere grants extras, y el claim `email` no se puede falsificar. Detalle completo en §Decisiones.
+
+**Migración:** `supabase/migrations/20260826120000_create_parent_children_invitations.sql` (178 líneas) — escrita a mano porque la CLI `supabase` no está disponible; refleja el DDL aplicado más los `revoke` necesarios para alinear los grants con las policies.
