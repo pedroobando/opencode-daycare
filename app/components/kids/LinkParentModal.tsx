@@ -1,24 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useActionState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangleIcon, CloseIcon } from '@/app/components/icons';
-import type { Parent } from '@/app/lib/kids';
-import { pickNextColor } from '@/app/utils/avatar-colors';
-import { generateAlphanumericCode } from '@/app/utils/random-code';
-import { slugify } from '@/app/utils/slugify';
-import {
-  LinkParentForm,
-  LinkParentFormPayload,
-} from './LinkParentForm';
+import { createInvitation } from '@/app/actions/invitations';
+import type { CreateInvitationState } from '@/app/actions/invitations';
+import { LinkParentForm } from './LinkParentForm';
 
 interface LinkParentModalProps {
   open: boolean;
   onClose: () => void;
   kidId: string;
   kidName: string;
-  existingParents: Parent[];
-  onAddParent: (parent: Parent) => void;
+  onSuccess: () => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -30,19 +24,22 @@ const useMounted = (): boolean => {
   );
 };
 
+const INITIAL_STATE: CreateInvitationState = { error: null };
+
 export const LinkParentModal = ({
   open,
   onClose,
+  kidId,
   kidName,
-  existingParents,
-  onAddParent,
+  onSuccess,
   triggerRef,
 }: LinkParentModalProps) => {
   const mounted = useMounted();
   const cardRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<Element | null>(null);
-  const [invitationCode, setInvitationCode] = useState('');
-  const wasOpenRef = useRef(false);
+  const submitAttemptedRef = useRef(false);
+
+  const [state, formAction] = useActionState(createInvitation, INITIAL_STATE);
 
   useEffect(() => {
     if (!open) {
@@ -61,14 +58,6 @@ export const LinkParentModal = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open, onClose]);
-
-  useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      setInvitationCode(generateAlphanumericCode(5));
-    }
-
-    wasOpenRef.current = open;
-  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -112,6 +101,16 @@ export const LinkParentModal = ({
     }
   }, [open, triggerRef]);
 
+  useEffect(() => {
+    if (state.error !== null || !submitAttemptedRef.current) {
+      return;
+    }
+
+    submitAttemptedRef.current = false;
+    onSuccess();
+    onClose();
+  }, [state, onSuccess, onClose]);
+
   const handleBackdropClick = () => {
     onClose();
   };
@@ -120,22 +119,8 @@ export const LinkParentModal = ({
     event.stopPropagation();
   };
 
-  const handleSubmit = (payload: LinkParentFormPayload) => {
-    const trimmedName = payload.name.trim();
-    const baseId = slugify(trimmedName);
-    const alreadyUsed = existingParents.some((parent) => parent.id === baseId);
-
-    const newParent: Parent = {
-      id: `${baseId}${alreadyUsed ? `-${Date.now()}` : ''}`,
-      name: trimmedName,
-      role: payload.role,
-      status: 'pending',
-      initial: trimmedName.charAt(0).toUpperCase(),
-      color: pickNextColor(existingParents, (parent) => parent.color),
-    };
-
-    onAddParent(newParent);
-    onClose();
+  const handleSubmitAttempted = () => {
+    submitAttemptedRef.current = true;
   };
 
   if (!open || !mounted) {
@@ -186,10 +171,12 @@ export const LinkParentModal = ({
         </div>
 
         <LinkParentForm
+          kidId={kidId}
           open={open}
-          invitationCode={invitationCode}
+          formAction={formAction}
+          state={state}
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmitAttempted={handleSubmitAttempted}
         />
       </div>
     </div>,

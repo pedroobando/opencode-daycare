@@ -345,4 +345,28 @@ Cada uno de estos, si aterriza, va en su propio spec dentro de `specs/` (con num
 
 ## Resultados de verificación
 
-_(Se completa al implementar.)_
+Aplicado contra la base real (project ref `fshwfkppcetvqnrccllq`) el 2026-08-26, branch `spec-10-parent-children-and-invitations-server-actions`.
+
+**Catálogo (paso 18 — typecheck, lint, build):**
+- `npx tsc --noEmit` exit 0.
+- `pnpm lint` exit 0.
+- `pnpm build` exit 0 (Next.js 16.3.1 con Turbopack compila todas las rutas).
+
+**Funcional (paso 19 — verificado vía `execute_sql` con `set_config('request.jwt.claims', ...)` para simular roles; el script Node server-only `/tmp/opencode/verify-invitations.mjs` quedó como referencia pero el admin API no responde con la clave `sb_secret_` del proyecto, por lo que la verificación se ejecutó via MCP SQL):**
+
+| # | Escenario                                                                                              | Resultado                                                                                                                                                                  |
+| - | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `createInvitation` INSERT bajo JWT staff (`role=staff`, `sub=pedro`)                                    | OK — fila insertada con `status=pending`, `expires_at > now()`, `code` único.                                                                                             |
+| 2 | Colisión en `invitations.code` (mismo `code` dos veces)                                                | OK — `23505 duplicate key value violates unique constraint "invitations_code_key"`.                                                                                         |
+| 3 | `listInvitationsByChild` con `users!inner(id, full_name, daycare_id).eq('users.daycare_id', ...)`       | OK — devuelve la fila esperada (INNER JOIN filtra por daycare).                                                                                                            |
+| 4 | `acceptInvitationByCode` SELECT bajo padre con email **matching** el JWT                                 | OK — devuelve 1 fila (la `invitations_select_for_accept` deja pasar).                                                                                                     |
+| 5 | `acceptInvitationByCode` SELECT bajo padre con email **distinto** al de la invitación                    | OK — devuelve 0 filas (la policy filtra por `email = (auth.jwt() ->> 'email')`).                                                                                          |
+| 6 | `cancelInvitation` UPDATE a `status='cancelled'` bajo staff                                            | OK — fila actualizada; `updated_at` avanza vía trigger `invitations_set_updated_at`.                                                                                       |
+| 7 | `acceptInvitationByCode` happy path completo: SELECT invitación (padre) + UPDATE a `accepted`            | OK — `status='accepted'`, `accepted_at = now()`. El INSERT en `parent_children` lo cubre el server action y fue validado estructuralmente por lectura del cuerpo (`app/actions/invitations/accept-by-code.ts`). |
+| 8 | `linkParentFromInvitation` UNIQUE: INSERT `(parent_id, child_id)` duplicado                             | OK — `23505 duplicate key value violates unique constraint "parent_children_parent_id_child_id_key"`.                                                                      |
+
+**Nota sobre el cross-daycare**: la policy `invitations_select_for_accept` filtra por `email = (auth.jwt() ->> 'email')`, así que el caso "padre intenta aceptar invitación de otra daycare" se reduce al test #5 (otro email → 0 filas). No se requirió sembrar dos daycares para validar este escenario.
+
+**DB limpia tras verificación:** `select count(*) from public.invitations` = 0; `select count(*) from public.parent_children` = 0.
+
+**Desviación del plan original:** El plan proponía pasar `full_name`, `role='parent'` y `invitation_code` en `raw_user_meta_data` al `signUp`, dejando que `handle_new_user` (DB-02) crease la fila `public.users` con esos campos. Sin embargo, el trigger exige `daycare_id` no-NULL en metadata, y `parent_children.invitations_select_for_accept` solo deja leer la invitación bajo un JWT del padre (que no existe aún al momento del signup). Se eligió la **Opción A refinada** acordada con el usuario: el server action `activateInvitation` lee `daycare_id` desde la invitación vía un cliente `SUPABASE_SERVICE_ROLE_KEY` server-only (`lib/supabase/admin.ts`, `import 'server-only'`) antes del `signUp`, y lo pasa en metadata junto con los demás campos. No expone la clave al cliente ni toca la decisión original del spec de evitar `service_role` para el flujo de UPDATE/rollback post-accept.
