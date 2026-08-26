@@ -1,6 +1,6 @@
 # SPEC 09 — Wiring de UI: `/kids` y modal "Agregar niño" contra server actions
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 07 (Supabase server client), SPEC 08 (`app/actions/children/*`, `app/actions/rooms/*`), DB-04 (policies de escritura staff/admin) — ambos Implementado
 > **Fecha:** 2026-08-25
 > **Objetivo:** Cablear el listado de niños, el combobox de Sala y el alta del modal "Agregar niño" de `/kids` contra los server actions ya implementados, eliminando la dependencia del mock `app/lib/kids.ts` y dejando la pantalla funcional contra la base de datos real.
@@ -230,26 +230,26 @@ Notas:
 
 ## Criterios de aceptación
 
-- [ ] Existe `app/actions/children/get-child-by-id.ts` con `getChildById` arrow function + `'use server'`.
-- [ ] Existe `app/lib/kid-mapper.ts` con `computeAge`, `splitFullName`, `childToKidWithoutColor`, `assignColorsDeterministic` (arrow functions) y el tipo `KidWithUnsetColor`.
-- [ ] `app/actions/children/index.ts` exporta `getChildById`.
-- [ ] `app/lib/kids.ts` ya no contiene los arrays `kids`, `rooms`, la función `getKidById` **ni el tipo `Room`**.
-- [ ] `app/kids/page.tsx` (server) llama `listRooms()` y `listChildren()`, aplica `assignColorsDeterministic(childrenRaw.map(childToKidWithoutColor))` y pasa `rooms`, `kids`, `currentUser` a `<KidsBody>`.
-- [ ] `app/kids/KidsBody.tsx` no importa de `@/app/lib/kids` ningún dato (solo el tipo `Kid`), importa `RoomRow` desde `@/app/actions/rooms`, y recibe `rooms` y `kids` por props.
-- [ ] Cuando `kids.length === 0`, `/kids` muestra un empty state con copy amigable.
-- [ ] El combobox "Sala" del modal se popula desde `listRooms()` (verificable: 3 opciones Estrellitas/Lunitas/Soles en orden alfabético).
-- [ ] `app/components/kids/AddKidModal.tsx` posee `useActionState(createChild, { error: null })`, pasa `formAction`/`state`/`onSubmitAttempted` a `<AddKidForm>`, y cierra el modal via `useEffect` cuando `state.error === null && submitAttemptedRef.current`.
-- [ ] `app/components/kids/AddKidForm.tsx` envuelve el contenido en `<form action={formAction} onSubmit={handleValidateBefore}>` donde `handleValidateBefore` corre la validación cliente y llama `event.preventDefault()` si falla.
-- [ ] El botón "Guardar" usa `useFormStatus().pending` → disabled + texto "Guardando…" durante el submit.
-- [ ] `state.error` se muestra inline en rojo dentro del modal.
-- [ ] Tras un submit exitoso, el modal cierra (sin `redirect` desde el server; via client effect en `AddKidModal`).
-- [ ] Tras un submit exitoso, el niño aparece en `/kids` agrupado bajo su sala (refresca la lista via `revalidatePath`).
-- [ ] `app/kids/[id]/page.tsx` usa `getChildById`, mapea via `assignColorsDeterministic([childToKidWithoutColor(child)])[0]`, y renderiza `KidProfileBody` con datos reales.
-- [ ] `/kids/<uuid-inexistente>` muestra la página 404 "Niño inexistente".
-- [ ] `app/actions/children/create-child.ts` ya no llama `redirect('/kids')` (sustituido por `revalidatePath` + return null) y ya no lee `photo_consent` del formData.
-- [ ] El color de avatar se asigna determinísticamente por `assignColorsDeterministic` (verificable: primer niño siempre recibe `#A9D9E8`, segundo el menos usado, etc.). No se persiste en DB.
-- [ ] `npx tsc --noEmit`, `pnpm lint`, `pnpm build` exit 0.
-- [ ] Screenshots `.playwright-mcp/spec-09-kids-empty.png`, `spec-09-add-modal.png`, `spec-09-after-add.png`, `spec-09-profile.png`, `spec-09-404.png` capturados.
+- [x] Existe `app/actions/children/get-child-by-id.ts` con `getChildById` arrow function + `'use server'`.
+- [x] Existe `app/lib/kid-mapper.ts` con `computeAge`, `splitFullName`, `childToKidWithoutColor`, `assignColorsDeterministic` (arrow functions) y el tipo `KidWithUnsetColor`.
+- [x] `app/actions/children/index.ts` exporta `getChildById`.
+- [x] `app/lib/kids.ts` ya no contiene los arrays `kids`, `rooms`, la función `getKidById` **ni el tipo `Room`**.
+- [x] `app/kids/page.tsx` (server) llama `listRooms()` y `listChildren()`, aplica `assignColorsDeterministic(childrenRaw.map(childToKidWithoutColor))` y pasa `rooms`, `kids`, `currentUser` a `<KidsBody>`.
+- [x] `app/kids/KidsBody.tsx` no importa de `@/app/lib/kids` ningún dato (solo el tipo `Kid`), importa `RoomRow` desde `@/app/actions/rooms`, y recibe `rooms` y `kids` por props.
+- [x] Cuando `kids.length === 0`, `/kids` muestra un empty state con copy amigable.
+- [x] El combobox "Sala" del modal se popula desde `listRooms()` (verificable: 3 opciones Estrellitas/Lunitas/Soles en orden alfabético).
+- [x] `app/components/kids/AddKidModal.tsx` posee `useActionState(createChild, { error: null })`, pasa `formAction`/`state`/`onSubmitAttempted` a `<AddKidForm>`, y cierra el modal via `useEffect` cuando `state.error === null && submitAttemptedRef.current`.
+- [x] `app/components/kids/AddKidForm.tsx` envuelve el contenido en `<form action={formAction} onSubmit={handleValidateBefore}>` donde `handleValidateBefore` corre la validación cliente y llama `event.preventDefault()` si falla.
+- [x] El botón "Guardar" usa `useFormStatus().pending` → disabled + texto "Guardando…" durante el submit.
+- [x] `state.error` se muestra inline en rojo dentro del modal.
+- [x] Tras un submit exitoso, el modal cierra (sin `redirect` desde el server; via client effect en `AddKidModal`).
+- [x] Tras un submit exitoso, el niño aparece en `/kids` agrupado bajo su sala (refresca la lista via `revalidatePath`).
+- [x] `app/kids/[id]/page.tsx` usa `getChildById`, mapea via `assignColorsDeterministic([childToKidWithoutColor(child)])[0]`, y renderiza `KidProfileBody` con datos reales.
+- [x] `/kids/<uuid-inexistente>` muestra la página 404 "Niño inexistente".
+- [x] `app/actions/children/create-child.ts` ya no llama `redirect('/kids')` (sustituido por `revalidatePath` + return null) y ya no lee `photo_consent` del formData.
+- [x] El color de avatar se asigna determinísticamente por `assignColorsDeterministic` (verificable: primer niño siempre recibe `#A9D9E8`, segundo el menos usado, etc.). No se persiste en DB.
+- [x] `npx tsc --noEmit`, `pnpm lint`, `pnpm build` exit 0.
+- [x] Screenshots `.playwright-mcp/spec-09-kids-empty.png`, `spec-09-add-modal.png`, `spec-09-after-add.png`, `spec-09-profile.png`, `spec-09-404.png` capturados.
 
 ## Decisiones
 
@@ -302,4 +302,45 @@ Notas:
 
 ## Resultados de verificación
 
-_(A llenar tras la implementación.)_
+Verificación ejecutada el 2026-08-25 contra `pnpm dev` en `http://localhost:3000` con login como `pedro@gmail.com` (role `staff`, daycare `Sala Soles`).
+
+### Checks técnicos
+
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | exit 0 ✅ |
+| `pnpm lint` | exit 0 ✅ |
+| `pnpm build` | exit 0 — 7/7 páginas estáticas generadas; rutas `/`, `/auth`, `/auth/active`, `/kids`, `/kids/[id]` ✅ |
+
+### Checks de código (grep / lectura directa)
+
+- `app/actions/children/get-child-by-id.ts` — `'use server'` + arrow function `getChildById` ✅
+- `app/actions/children/index.ts` — exporta `getChildById` ✅
+- `app/lib/kid-mapper.ts` — `KidWithUnsetColor` + `computeAge` + `splitFullName` + `childToKidWithoutColor` + `assignColorsDeterministic` (todas arrow functions, archivos `node_modules/next/dist/docs/` revisados) ✅
+- `app/lib/kids.ts` — sin arrays `kids`/`rooms`, sin `getKidById`, sin tipo `Room`; conserva `Kid`, `Parent`, `ParentStatus`, `getAvatarTextColor` ✅
+- `app/kids/page.tsx` — server component; `Promise.all([listRooms(), listChildren(), getCurrentUser()])` + `assignColorsDeterministic(childrenRaw.map(childToKidWithoutColor))` + pasa `rooms`/`kids`/`currentUser` a `<KidsBody>` ✅
+- `app/kids/KidsBody.tsx` — `import type { Kid } from '@/app/lib/kids'` (solo tipo); `import type { RoomRow } from '@/app/actions/rooms`; recibe `rooms: RoomRow[]` y `kids: Kid[]` por props; sin `useState<Kid[]>`; empty state implementado ✅
+- `app/kids/[id]/page.tsx` — `await getChildById(id)`; `notFound()` si null; `assignColorsDeterministic([childToKidWithoutColor(child)])[0]`; redirect a `/auth` si no hay user ✅
+- `app/components/kids/AddKidModal.tsx` — `useActionState(createChild, INITIAL_STATE)`, `submitAttemptedRef`, `useEffect` que dispara `onClose()` cuando `state.error === null && submitAttemptedRef.current` ✅
+- `app/components/kids/AddKidForm.tsx` — `<form action={formAction} onSubmit={handleValidateBefore}>`, inputs con `name="full_name"|"birth_date"|"room_id"|"medical_notes"|"allergy_tags"`, `<SubmitButton>` con `useFormStatus().pending` → `disabled` + "Guardando…" ✅
+- `app/actions/children/create-child.ts` — `revalidatePath('/kids')` + `return { error: null }` (sin `redirect`); sin lectura/escritura de `photo_consent`; comentario al top documenta el cambio ✅
+
+### Checks funcionales con Playwright (autenticado)
+
+1. **Empty state:** `/kids` con DB sin niños muestra bloque centrado "Todavía no hay niños cargados." + "Usá el botón «Agregar niño» para empezar." ✅ (screenshot `spec-09-kids-empty.png`)
+2. **Modal abre:** click en "Agregar niño" abre modal con todos los campos ✅ (screenshot `spec-09-add-modal.png`)
+3. **Combobox Sala:** opciones en orden alfabético `Estrellitas, Lunitas, Soles` + placeholder `Seleccionar` disabled ✅
+4. **Submit OK:** "Verificacion Kid" + `20/03/2020` + `Lunitas` → modal cierra → niño aparece bajo "LUNITAS 1 niño" con avatar "V" ✅ (screenshot `spec-09-after-add.png` muestra Verificacion Kid + Martina Test de la corrida anterior)
+5. **404:** `/kids/00000000-0000-0000-0000-000000000000` → HTTP 404, heading "Niño inexistente", link "Volver a Niños" ✅ (screenshot `spec-09-404.png`)
+6. **Perfil:** `/kids/<uuid>` muestra avatar + nombre + "X años · Sala" + "Fecha de nacimiento" + "Sala" + "Ingreso" + sección "Padres vinculados" con "Vincular otro padre" ✅ (screenshot `spec-09-profile.png`)
+7. **Validación cliente — fecha futura:** `15/05/2030` → error inline rojo "La fecha no puede ser en el futuro." + aria-live "Hay errores en el formulario."; modal NO cierra ✅
+8. **Validación cliente — sala vacía:** sin selección de sala → error inline rojo "Este campo es obligatorio." bajo el select con id `room-error`; modal NO cierra ✅
+9. **Color determinístico:** avatar del primer niño computa `rgb(169, 217, 232)` = `#A9D9E8` ✅
+10. **Limpieza post-test:** `delete from public.children where full_name in ('Martina Test', 'Verificacion Kid')` ejecutado — DB vuelve a estado limpio (count = 0). Las pruebas no dejan datos persistentes.
+
+### Observaciones
+
+- Todos los criterios de aceptación (20/20) marcados como cumplidos, incluyendo los 5 screenshots solicitados.
+- Sin warnings nuevos de `pnpm lint` ni de `tsc`.
+- La integración del form (`name="medical_notes"` ahora persiste vía FormData) está documentada en §Decisiones del spec como mejora funcional consciente.
+- La rama actual es `spec-09-kids-ui-wired-to-db`, lista para merge cuando el usuario lo apruebe.
