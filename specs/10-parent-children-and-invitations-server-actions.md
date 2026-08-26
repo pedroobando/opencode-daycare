@@ -1,6 +1,6 @@
 # SPEC 10 — Server actions para `parent_children` e `invitations` + activación real en `/auth/active`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** DB-05 (`parent_children` + `invitations` + RLS + policies staff/admin), SPEC 07 (`createSupabaseServerClient`, auth flow), SPEC 08 (`getCurrentUserDaycareId` + `_lib/current-daycare`), SPEC 09 (pattern de server actions CRUD con revalidatePath)
 > **Fecha:** 2026-08-26
 > **Objetivo:** Crear los server actions en `app/actions/parent-children/` y `app/actions/invitations/` para gestionar vínculos padre↔niño y códigos de invitación (mínimo viable: 3 actions en `parent_children`, 4 en `invitations`), regenerar `database.types.ts`, y enchufar el flujo real de activación en `/auth/active` contra `acceptInvitationByCode` con signup de Supabase Auth + creación de fila `users` vía `raw_user_meta_data` + link en `parent_children`.
@@ -268,29 +268,29 @@ export const requireStaffOrAdmin = async (): Promise<CurrentStaffUser> => {
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/10-parent-children-and-invitations-server-actions.md` en estado `Borrador` que avanza a `Aprobado` / `Implementado`.
-- [ ] `database.types.ts` regenerado y commiteado: contiene `parent_children: { Row, Insert, Update }`, `invitations: { Row, Insert, Update }`, `Enums.relationship_type: 'father' | 'mother' | 'guardian'`, `Enums.invitation_status: 'pending' | 'accepted' | 'expired' | 'cancelled'`.
-- [ ] Existen los archivos:
+- [x] Existe `specs/10-parent-children-and-invitations-server-actions.md` en estado `Borrador` que avanza a `Aprobado` / `Implementado`.
+- [x] `database.types.ts` regenerado y commiteado: contiene `parent_children: { Row, Insert, Update }`, `invitations: { Row, Insert, Update }`, `Enums.relationship_type: 'father' | 'mother' | 'guardian'`, `Enums.invitation_status: 'pending' | 'accepted' | 'expired' | 'cancelled'`.
+- [x] Existen los archivos:
   - `app/actions/_lib/invitation-code.ts`
   - `app/actions/_lib/require-staff-role.ts`
   - `app/actions/parent-children/{types,list-by-child,link-from-invitation,unlink-parent,index}.ts`
   - `app/actions/invitations/{types,create-invitation,list-by-child,cancel-invitation,accept-by-code,index}.ts`
-- [ ] Cada archivo de action tiene `'use server'` en la primera línea.
-- [ ] Cada action es una arrow function exportada.
-- [ ] `app/actions/parent-children/index.ts` re-exporta `listParentsByChild`, `linkParentFromInvitation`, `unlinkParent` y los tipos públicos.
-- [ ] `app/actions/invitations/index.ts` re-exporta `createInvitation`, `listInvitationsByChild`, `cancelInvitation`, `acceptInvitationByCode` y los tipos públicos.
-- [ ] `listParentsByChild` filtra por daycare via `users!inner.daycare_id` (verificable por lectura del body).
-- [ ] `createInvitation` genera código con `crypto.getRandomValues` (no `Math.random`), con retry ante `23505`, persiste `expires_at = now() + 7 days` (verificable por lectura del body).
-- [ ] `cancelInvitation` rechaza con error claro si el status no es `pending` (verificable por lectura del body).
-- [ ] `acceptInvitationByCode` valida `status='pending'` y `expires_at > now()` antes del INSERT (verificable por lectura del body).
-- [ ] `linkParentFromInvitation` captura `23505` y devuelve `'Este padre ya está vinculado a este niño.'` (verificable por lectura del body).
-- [ ] `KidProfileBody` lee de `listParentsByChild` en lugar de mantener `linkedParents` en state local.
-- [ ] `app/auth/active/page.tsx` hace signup real + accept + update status + redirect; muestra error inline si falla.
-- [ ] Mensajes de error en español con voseo, consistentes con `app/actions/auth/sign-in.ts` y SPEC 08.
-- [ ] Verificación funcional (paso 19) pasa: createInvitation OK con código único, acceptInvitationByCode OK con parent_children creado, intento cross-daycare falla.
-- [ ] `npx tsc --noEmit` exit 0.
-- [ ] `pnpm lint` exit 0.
-- [ ] `pnpm build` exit 0.
+- [x] Cada archivo de action tiene `'use server'` en la primera línea.
+- [x] Cada action es una arrow function exportada.
+- [x] `app/actions/parent-children/index.ts` re-exporta `listParentsByChild`, `linkParentFromInvitation`, `unlinkParent` y los tipos públicos.
+- [x] `app/actions/invitations/index.ts` re-exporta `createInvitation`, `listInvitationsByChild`, `cancelInvitation`, `acceptInvitationByCode` y los tipos públicos.
+- [x] `listParentsByChild` filtra por daycare via `users!inner.daycare_id` (verificable por lectura del body).
+- [x] `createInvitation` genera código con `crypto.getRandomValues` (no `Math.random`), con retry ante `23505`, persiste `expires_at = now() + 7 days` (verificable por lectura del body).
+- [x] `cancelInvitation` rechaza con error claro si el status no es `pending` (verificable por lectura del body).
+- [x] `acceptInvitationByCode` valida `status='pending'` y `expires_at > now()` antes del INSERT (verificable por lectura del body).
+- [x] `linkParentFromInvitation` captura `23505` y devuelve `'Este padre ya está vinculado a este niño.'` (verificable por lectura del body).
+- [x] `KidProfileBody` lee de `listParentsByChild` en lugar de mantener `linkedParents` en state local.
+- [x] `app/auth/active/page.tsx` hace signup real + accept + update status + redirect; muestra error inline si falla.
+- [x] Mensajes de error en español con voseo, consistentes con `app/actions/auth/sign-in.ts` y SPEC 08.
+- [x] Verificación funcional (paso 19) pasa: createInvitation OK con código único, acceptInvitationByCode OK con parent_children creado, intento cross-daycare falla.
+- [x] `npx tsc --noEmit` exit 0.
+- [x] `pnpm lint` exit 0.
+- [x] `pnpm build` exit 0.
 
 ## Decisiones tomadas y descartadas
 
