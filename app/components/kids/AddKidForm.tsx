@@ -1,21 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { ChevronDownIcon } from '@/app/components/icons';
-import type { Room } from '@/app/lib/kids';
-
-export interface AddKidFormPayload {
-  fullName: string;
-  birthDate: Date;
-  roomId: string;
-  allergies: string;
-}
+import type { RoomRow } from '@/app/actions/rooms';
+import type { CreateChildState } from '@/app/actions/children';
 
 interface AddKidFormProps {
-  rooms: Room[];
+  rooms: RoomRow[];
   open: boolean;
   onCancel: () => void;
-  onSubmit: (payload: AddKidFormPayload) => void;
+  formAction: (payload: FormData) => void;
+  state: CreateChildState;
+  onSubmitAttempted: () => void;
 }
 
 interface FormErrors {
@@ -104,11 +101,26 @@ export const parseDateInput = (value: string): ParsedDateResult => {
   return { status: 'ok', date };
 };
 
+const SubmitButton = () => {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="text-[15px] font-extrabold text-primary disabled:opacity-60"
+    >
+      {pending ? 'Guardando…' : 'Guardar'}
+    </button>
+  );
+};
+
 export const AddKidForm = ({
   rooms,
   open,
   onCancel,
-  onSubmit,
+  formAction,
+  state,
+  onSubmitAttempted,
 }: AddKidFormProps) => {
   const [fullName, setFullName] = useState('');
   const [birthDateInput, setBirthDateInput] = useState('');
@@ -125,7 +137,7 @@ export const AddKidForm = ({
     setBirthDateInput(formatDateInput(event.target.value));
   };
 
-  const handleSubmit = () => {
+  const handleValidateBefore = (event: React.FormEvent<HTMLFormElement>) => {
     const nextErrors: FormErrors = {};
     const trimmedFullName = fullName.trim();
 
@@ -152,15 +164,11 @@ export const AddKidForm = ({
       parsedBirthDate.status !== 'ok' ||
       selectedRoomId === ''
     ) {
+      event.preventDefault();
       return;
     }
 
-    onSubmit({
-      fullName: trimmedFullName,
-      birthDate: parsedBirthDate.date,
-      roomId: selectedRoomId,
-      allergies: allergies.trim(),
-    });
+    onSubmitAttempted();
   };
 
   const inputBaseClasses =
@@ -171,143 +179,148 @@ export const AddKidForm = ({
 
   return (
     <div className="w-full max-w-[520px] overflow-hidden rounded-3xl border border-card-border bg-card shadow-[0_20px_50px_-24px_rgba(63,54,46,0.35)]">
-      <div className="flex items-center justify-between border-b border-card-border px-6 py-5">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-[15px] font-bold text-muted-light"
-        >
-          Cancelar
-        </button>
-        <h2
-          id="add-kid-title"
-          className="font-display text-[18px] font-semibold text-foreground"
-        >
-          Agregar niño
-        </h2>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="text-[15px] font-extrabold text-primary"
-        >
-          Guardar
-        </button>
-      </div>
-
-      <div className="px-6 py-6">
-        <div aria-live="polite" className="sr-only">
-          {Object.values(errors).some(Boolean) && 'Hay errores en el formulario.'}
+      <form action={formAction} onSubmit={handleValidateBefore}>
+        <div className="flex items-center justify-between border-b border-card-border px-6 py-5">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-[15px] font-bold text-muted-light"
+          >
+            Cancelar
+          </button>
+          <h2
+            id="add-kid-title"
+            className="font-display text-[18px] font-semibold text-foreground"
+          >
+            Agregar niño
+          </h2>
+          <SubmitButton />
         </div>
 
-        <div className="mb-[18px]">
-          <label htmlFor="full-name" className={labelClasses}>
-            Nombre completo
-          </label>
-          <input
-            id="full-name"
-            type="text"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-            placeholder="Ej. Martina López"
-            aria-invalid={errors.fullName ? 'true' : 'false'}
-            aria-describedby={errors.fullName ? 'full-name-error' : undefined}
-            className={inputBaseClasses}
-          />
-          {errors.fullName && (
-            <p id="full-name-error" className="mt-1 text-[12.5px] text-[#D9583C]">
-              {errors.fullName}
-            </p>
+        <div className="px-6 py-6">
+          {state.error !== null && (
+            <p className="mb-4 text-[12.5px] text-[#D9583C]">{state.error}</p>
           )}
-        </div>
 
-        <div className="mb-[18px] flex gap-14">
-          <div className="flex-1">
-            <label htmlFor="birth-date" className={labelClasses}>
-              Fecha de nacimiento
+          <div aria-live="polite" className="sr-only">
+            {Object.values(errors).some(Boolean) && 'Hay errores en el formulario.'}
+          </div>
+
+          <div className="mb-[18px]">
+            <label htmlFor="full-name" className={labelClasses}>
+              Nombre completo
             </label>
             <input
-              id="birth-date"
+              id="full-name"
+              name="full_name"
               type="text"
-              inputMode="numeric"
-              value={birthDateInput}
-              onChange={handleBirthDateChange}
-              placeholder="dd/mm/aaaa"
-              aria-invalid={errors.birthDate ? 'true' : 'false'}
-              aria-describedby={
-                errors.birthDate ? 'birth-date-error' : undefined
-              }
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              placeholder="Ej. Martina López"
+              aria-invalid={errors.fullName ? 'true' : 'false'}
+              aria-describedby={errors.fullName ? 'full-name-error' : undefined}
               className={inputBaseClasses}
             />
-            {errors.birthDate && (
-              <p
-                id="birth-date-error"
-                className="mt-1 text-[12.5px] text-[#D9583C]"
-              >
-                {errors.birthDate}
+            {errors.fullName && (
+              <p id="full-name-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+                {errors.fullName}
               </p>
             )}
           </div>
 
-          <div className="flex-1">
-            <label htmlFor="room" className={labelClasses}>
-              Sala
-            </label>
-            <div className="relative">
-              <select
-                id="room"
-                value={selectedRoomId}
-                onChange={(event) => setSelectedRoomId(event.target.value)}
-                aria-invalid={errors.roomId ? 'true' : 'false'}
-                aria-describedby={errors.roomId ? 'room-error' : undefined}
-                className={`${inputBaseClasses} appearance-none pr-10`}
-              >
-                <option value="" disabled>
-                  Seleccionar
-                </option>
-                {rooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-placeholder-text" />
+          <div className="mb-[18px] flex gap-14">
+            <div className="flex-1">
+              <label htmlFor="birth-date" className={labelClasses}>
+                Fecha de nacimiento
+              </label>
+              <input
+                id="birth-date"
+                name="birth_date"
+                type="text"
+                inputMode="numeric"
+                value={birthDateInput}
+                onChange={handleBirthDateChange}
+                placeholder="dd/mm/aaaa"
+                aria-invalid={errors.birthDate ? 'true' : 'false'}
+                aria-describedby={
+                  errors.birthDate ? 'birth-date-error' : undefined
+                }
+                className={inputBaseClasses}
+              />
+              {errors.birthDate && (
+                <p
+                  id="birth-date-error"
+                  className="mt-1 text-[12.5px] text-[#D9583C]"
+                >
+                  {errors.birthDate}
+                </p>
+              )}
             </div>
-            {errors.roomId && (
-              <p id="room-error" className="mt-1 text-[12.5px] text-[#D9583C]">
-                {errors.roomId}
-              </p>
-            )}
+
+            <div className="flex-1">
+              <label htmlFor="room" className={labelClasses}>
+                Sala
+              </label>
+              <div className="relative">
+                <select
+                  id="room"
+                  name="room_id"
+                  value={selectedRoomId}
+                  onChange={(event) => setSelectedRoomId(event.target.value)}
+                  aria-invalid={errors.roomId ? 'true' : 'false'}
+                  aria-describedby={errors.roomId ? 'room-error' : undefined}
+                  className={`${inputBaseClasses} appearance-none pr-10`}
+                >
+                  <option value="" disabled>
+                    Seleccionar
+                  </option>
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-placeholder-text" />
+              </div>
+              {errors.roomId && (
+                <p id="room-error" className="mt-1 text-[12.5px] text-[#D9583C]">
+                  {errors.roomId}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mb-[18px]">
+            <label htmlFor="allergies" className={labelClasses}>
+              Alergias (etiquetas)
+            </label>
+            <input
+              id="allergies"
+              name="allergy_tags"
+              type="text"
+              value={allergies}
+              onChange={(event) => setAllergies(event.target.value)}
+              placeholder="Ej. Maní, Lactosa"
+              className={inputBaseClasses}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="medical-notes" className={labelClasses}>
+              Notas médicas
+            </label>
+            <textarea
+              id="medical-notes"
+              name="medical_notes"
+              value={medicalNotes}
+              onChange={(event) => setMedicalNotes(event.target.value)}
+              placeholder="Indicaciones, medicación, contactos..."
+              rows={4}
+              className={`${inputBaseClasses} min-h-[90px] resize-y leading-relaxed`}
+            />
           </div>
         </div>
-
-        <div className="mb-[18px]">
-          <label htmlFor="allergies" className={labelClasses}>
-            Alergias (etiquetas)
-          </label>
-          <input
-            id="allergies"
-            type="text"
-            value={allergies}
-            onChange={(event) => setAllergies(event.target.value)}
-            placeholder="Ej. Maní, Lactosa"
-            className={inputBaseClasses}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="medical-notes" className={labelClasses}>
-            Notas médicas
-          </label>
-          <textarea
-            id="medical-notes"
-            value={medicalNotes}
-            onChange={(event) => setMedicalNotes(event.target.value)}
-            placeholder="Indicaciones, medicación, contactos..."
-            rows={4}
-            className={`${inputBaseClasses} min-h-[90px] resize-y leading-relaxed`}
-          />
-        </div>
-      </div>
+      </form>
     </div>
   );
 };

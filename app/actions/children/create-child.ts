@@ -1,11 +1,18 @@
 'use server';
 
-// WARNING: RLS in DB-03 only allows SELECT on `public.children` — there are no
-// INSERT/UPDATE/DELETE policies yet. This action will fail at runtime with
-// "new row violates row-level security policy" until the write-policy spec
-// lands. Structural verification only for now (see SPEC 08 §Riesgos).
+// SPEC 09: This action now returns `{ error: null }` on success and lets the
+// client control the modal close. Previously it called `redirect('/kids')`,
+// which made the client-side `isModalOpen` state survive the navigation and
+// left the modal visible with stale data. We revalidate `/kids` so the list
+// refreshes with the new row.
+//
+// `photo_consent` is intentionally omitted from the INSERT so the DB default
+// (`true`) applies. The UI for photo consent will live in a future spec; the
+// current `<form>` has no `name="photo_consent"` input either. Inserting
+// `false` explicitly would be semantically wrong (consent revoked), so the
+// field stays out of the server contract until that spec lands.
 
-import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { requireCurrentUserDaycareId } from '@/app/actions/_lib/current-daycare';
 import { isDateInFuture, parseDdMmYyyy } from '@/app/actions/_lib/birth-date';
@@ -22,7 +29,6 @@ export const createChild = async (
   const roomId = (formData.get('room_id') ?? '').toString();
   const medicalNotes = (formData.get('medical_notes') ?? '').toString().trim();
   const allergyTagsRaw = (formData.get('allergy_tags') ?? '').toString();
-  const photoConsent = formData.get('photo_consent') === 'on';
 
   if (fullName.length < MIN_FULL_NAME_LENGTH) {
     return { error: 'Ingresá un nombre.' };
@@ -69,7 +75,6 @@ export const createChild = async (
       birth_date: birthDate,
       medical_notes: medicalNotes || null,
       allergy_tags: allergyTags,
-      photo_consent: photoConsent,
     })
     .select()
     .single();
@@ -78,5 +83,6 @@ export const createChild = async (
     return { error: 'No pudimos crear el niño. Probá de nuevo.' };
   }
 
-  redirect('/kids');
+  revalidatePath('/kids');
+  return { error: null };
 };

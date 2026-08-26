@@ -1,6 +1,12 @@
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/current-user';
+import { listRooms } from '@/app/actions/rooms';
+import { listChildren } from '@/app/actions/children';
+import {
+  assignColorsDeterministic,
+  childToKidWithoutColor,
+} from '@/app/lib/kid-mapper';
 import { KidsBody } from '@/app/kids/KidsBody';
 
 export default async function KidsPage() {
@@ -13,7 +19,15 @@ export default async function KidsPage() {
     redirect('/auth');
   }
 
-  const currentUser = await getCurrentUser();
+  const [rooms, childrenRaw, currentUser] = await Promise.all([
+    listRooms(),
+    listChildren(),
+    getCurrentUser(),
+  ]);
 
-  return <KidsBody currentUser={currentUser} />;
+  const kids = assignColorsDeterministic(
+    childrenRaw.map(childToKidWithoutColor),
+  );
+
+  return <KidsBody currentUser={currentUser} rooms={rooms} kids={kids} />;
 }

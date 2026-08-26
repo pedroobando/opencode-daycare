@@ -8,7 +8,7 @@ import { SearchInput } from '@/app/components/kids/SearchInput';
 import { RoomDivider } from '@/app/components/kids/RoomDivider';
 import { KidCard } from '@/app/components/kids/KidCard';
 import { AddKidModal } from '@/app/components/kids/AddKidModal';
-import { rooms, kids } from '@/app/lib/kids';
+import type { RoomRow } from '@/app/actions/rooms';
 import type { Kid } from '@/app/lib/kids';
 import type { SidebarUser } from '@/lib/supabase/current-user';
 
@@ -19,9 +19,18 @@ const normalize = (text: string): string => {
     .toLowerCase();
 };
 
-export const KidsBody = ({ currentUser }: { currentUser?: SidebarUser | null }) => {
+interface KidsBodyProps {
+  currentUser?: SidebarUser | null;
+  rooms: RoomRow[];
+  kids: Kid[];
+}
+
+export const KidsBody = ({
+  currentUser,
+  rooms,
+  kids,
+}: KidsBodyProps) => {
   const [query, setQuery] = useState('');
-  const [kidsList, setKidsList] = useState<Kid[]>(kids);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const triggerButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -29,21 +38,21 @@ export const KidsBody = ({ currentUser }: { currentUser?: SidebarUser | null }) 
 
   const filteredKids = useMemo(() => {
     if (normalizedQuery === '') {
-      return kidsList;
+      return kids;
     }
 
-    return kidsList.filter((kid) => {
+    return kids.filter((kid) => {
       const fullName = normalize(`${kid.firstName} ${kid.lastName}`);
       return fullName.includes(normalizedQuery);
     });
-  }, [normalizedQuery, kidsList]);
+  }, [normalizedQuery, kids]);
 
   const kidsByRoom = useMemo(() => {
     return rooms.map((room) => ({
       ...room,
       kids: filteredKids.filter((kid) => kid.roomId === room.id),
     }));
-  }, [filteredKids]);
+  }, [filteredKids, rooms]);
 
   return (
     <div className="flex min-h-screen">
@@ -79,35 +88,46 @@ export const KidsBody = ({ currentUser }: { currentUser?: SidebarUser | null }) 
             <SearchInput value={query} onChange={setQuery} />
           </div>
 
-          {filteredKids.length === 0 && (
-            <p className="py-10 text-center text-[15px] text-muted-light">
-              No se encontraron niños que coincidan con “{query}”.
-            </p>
-          )}
+          {kids.length === 0 ? (
+            <div className="mt-10 flex flex-col items-center gap-3 rounded-3xl border border-dashed border-card-border bg-card/60 px-6 py-14 text-center">
+              <p className="font-display text-[18px] font-semibold text-foreground">
+                Todavía no hay niños cargados.
+              </p>
+              <p className="max-w-[420px] text-[14px] leading-relaxed text-muted-light">
+                Usá el botón «Agregar niño» para empezar.
+              </p>
+            </div>
+          ) : (
+            <>
+              {filteredKids.length === 0 && (
+                <p className="py-10 text-center text-[15px] text-muted-light">
+                  No se encontraron niños que coincidan con “{query}”.
+                </p>
+              )}
 
-          {kidsByRoom.map(
-            (room) =>
-              room.kids.length > 0 && (
-                <section key={room.id}>
-                  <RoomDivider
-                    roomName={room.name}
-                    kidCount={room.kids.length}
-                  />
-                  <div className="grid gap-3.5 sm:grid-cols-2">
-                    {room.kids.map((kid) => (
-                      <KidCard key={kid.id} kid={kid} />
-                    ))}
-                  </div>
-                </section>
-              ),
+              {kidsByRoom.map(
+                (room) =>
+                  room.kids.length > 0 && (
+                    <section key={room.id}>
+                      <RoomDivider
+                        roomName={room.name}
+                        kidCount={room.kids.length}
+                      />
+                      <div className="grid gap-3.5 sm:grid-cols-2">
+                        {room.kids.map((kid) => (
+                          <KidCard key={kid.id} kid={kid} />
+                        ))}
+                      </div>
+                    </section>
+                  ),
+              )}
+            </>
           )}
 
           <AddKidModal
             open={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             rooms={rooms}
-            existingKids={kidsList}
-            onAddKid={(kid) => setKidsList((prev) => [kid, ...prev])}
             triggerRef={triggerButtonRef}
           />
         </div>
