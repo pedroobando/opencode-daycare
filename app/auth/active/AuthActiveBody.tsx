@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { CheckIcon, LogoIcon } from '@/app/components/icons';
 import { isValidEmail } from '@/app/utils/email';
 import { activateInvitation, type ActivateInvitationState } from '@/app/actions/auth';
@@ -11,8 +12,11 @@ const MIN_PASSWORD_LENGTH = 8;
 const MIN_FULL_NAME_LENGTH = 2;
 
 export const AuthActiveBody = () => {
+  const searchParams = useSearchParams();
   const [state, formAction] = useActionState(activateInvitation, INITIAL_STATE);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(() =>
+    (searchParams?.get('code') ?? '').toUpperCase(),
+  );
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');

@@ -169,8 +169,10 @@ Env vars:
 
 - **Sí: rollback del INSERT si Resend falla** (decisión del usuario).
 - **Sí: React Email como librería de plantillas** (decisión del usuario).
+- **Cambio al scope del spec: se usa `react-email@6.x` (v6 unificado) en lugar de `@react-email/components`.** React Email v6 unificó `components` + `render` en un único paquete `react-email`. La doc oficial de migración (`react-email/getting-started/updating-react-email`) instruye desinstalar `@react-email/components` y usar `import { Html, Body, render, ... } from 'react-email'`. API de `render` igual a v5. Decidido durante implementación para mantener el paquete actual soportado.
 - **Sí: pre-fill del código en `/auth/active` desde query string** (decisión del usuario).
 - **Sí: columnas `sent_at` + `last_send_error` para auditoría** (decisión del usuario; DB-06).
+- **Sí (fix durante implementación): se agregan dos policies RLS faltantes.** La verificación end-to-end descubrió que `acceptInvitationByCode` (SPEC 10) ejecutaba `UPDATE` sobre `invitations` y `INSERT` sobre `parent_children` con el JWT del padre recién firmado, pero las policies de DB-05 solo permitían esas operaciones a `staff`/`admin`. El flow fallaba silenciosamente: `signUp` creaba el `auth.users` + `public.users`, pero la invitación quedaba `pending` y el vínculo padre↔niño nunca se creaba. Migration nueva: `supabase/migrations/20260827000000_add_invitation_accept_rls_policies.sql` con dos policies permisivas adicionales (`invitations_update_for_accept`, `parent_children_insert_for_accept`) que se suman (OR) a las vigentes.
 - **Sí: cliente mock que escribe a `/tmp/opencode/last-invitation-email.html` cuando `RESEND_API_KEY=mock` o falta.** Permite dev local sin API key real; el flujo se verifica end-to-end sin depender de un proveedor externo.
 - **Sí: `NEXT_PUBLIC_APP_URL` como env pública para construir el activation URL.** Debe estar disponible en el server (que arma el email) y se usa también en el cliente vía el pre-fill del query.
 - **Sí: `RESEND_FROM_EMAIL` default `onboarding@resend.dev` (sandbox).** El usuario debe reemplazarlo por un dominio verificado antes de prod.
@@ -211,4 +213,44 @@ Env vars:
 
 ## Resultados de verificación
 
-_(Se completa después de implementar.)_
+**Implementación (Steps 1–10):** ✅ Completa.
+
+- [x] DB-06 aplicado y commiteado (merge #27 previo).
+- [x] `resend@6.22.1` + `react-email@6.9.3` instalados pinned en `package.json`.
+- [x] `lib/email/resend.ts` (server-only) con `getResendClient()` (mock + real).
+- [x] `lib/email/types.ts` con `InvitationEmailProps`.
+- [x] `lib/email/templates/InvitationEmail.tsx` (plantilla React Email).
+- [x] `app/actions/invitations/create-invitation.ts` envía email + rollback si falla + `sent_at` si OK.
+- [x] `app/auth/active/AuthActiveBody.tsx` pre-rellena desde `?code=` (lowercase → uppercase).
+- [x] `app/auth/active/page.tsx` envuelve `<AuthActiveBody />` en `<Suspense fallback={null}>`.
+- [x] `.env.template` con `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_FROM_NAME`, `NEXT_PUBLIC_APP_URL`.
+- [x] `npx tsc --noEmit` exit 0.
+- [x] `pnpm lint` exit 0.
+- [x] `pnpm build` exit 0; `/auth/active` marcado como Dynamic (Suspense boundary correcto).
+- [x] `get_advisors` (security) sin ERRORs nuevos tras DB-06 y la migration nueva de RLS.
+
+**Verificación funcional con `RESEND_API_KEY=mock` (Step 11):** ✅ Parcial.
+
+- [x] Login como `pedro@gmail.com` (staff, sala `Sala Soles`).
+- [x] Abrir `/kids/<Maria-id>` → Vincular Padre → llenar `Diego Fernández` / `diego.test@gmail.com` / `Papá` → submit.
+- [x] Inspección de `/tmp/opencode/last-invitation-email.html`: contiene el código (p.ej. `8U5PSH`), `${NEXT_PUBLIC_APP_URL}/auth/active?code=XXX`, nombres (Diego Fernández, Maria, Sala Soles), fecha "vence el 2 de septiembre de 2026" (Intl.DateTimeFormat español).
+- [x] `select * from public.invitations`: `status='pending'`, `sent_at IS NOT NULL`, `last_send_error IS NULL`.
+- [x] Click en el link del HTML → `/auth/active?code=8u5psh` → input pre-rellenado en uppercase `8U5PSH`.
+- [ ] **Bloqueado:** signup del padre vía `supabase.auth.signUp` devuelve error `over_email_send_rate_limit` (rate limit por hora del proyecto Supabase dev; imposible de saltar desde la UI). El `auth.users` y `public.users` no se crean, por lo que `acceptInvitationByCode` no se ejecuta vía sesión real.
+- [x] **Verificación indirecta del fix RLS:** confirmada vía SQL manual con `set local request.jwt.claims = '{"sub":"<user-id>","email":"diego.test@gmail.com","role":"authenticated"}'`. El `UPDATE invitations SET status='accepted' WHERE code='…'` retorna 1 fila (RLS OK). El `INSERT INTO parent_children …` también retorna 1 fila (RLS OK). La migration `20260827000000_add_invitation_accept_rls_policies.sql` es la fuente del fix.
+
+**Verificación negativa con `RESEND_API_KEY=invalid_key` (Step 12):** ✅ Completa.
+
+- [x] Modal muestra "No pudimos enviar la invitación. Probá de nuevo.".
+- [x] `select count(*) from public.invitations where email='diego.test@gmail.com'`: 0 filas (rollback OK; el INSERT fue borrado por el `DELETE FROM invitations WHERE id=…` del server action).
+- [x] Dev server log: Resend API devuelve `401 API key is invalid`, `createInvitation` retorna `{ error: 'No pudimos enviar la invitación. Probá de nuevo.' }`.
+
+**Limpieza (Step 13):** ✅ Completa.
+
+- [x] `auth.users` y `public.invitations` para `diego.test@gmail.com` borrados.
+- [x] `/tmp/opencode/last-invitation-email.html` truncado.
+- [x] `.env` local restaurado a `RESEND_API_KEY=mock`.
+
+**Pendiente para próxima sesión (no bloquea merge):**
+
+- Re-correr la parte final del Step 11 cuando el rate limit de Supabase se haya reseteado (1h desde el primer signUp), o desactivar "Confirm email" en la config del proyecto Supabase para que `signUp` no dispare el rate limit. La lógica de SPEC 11 está validada; solo falta la corrida end-to-end del signup por una restricción externa del proveedor.
