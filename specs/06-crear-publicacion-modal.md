@@ -1,6 +1,6 @@
 # SPEC 06 — Modal "Nueva publicación" en `/`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01 — Feed como home `/`
 > **Fecha:** 2026-08-19
 > **Objetivo:** Convertir el botón "Nueva publicación" del sidebar en un modal compacto que reproduce `reference/pantallas/crear-publicacion.dc.html` con los 16 niños ordenados alfabéticamente, el botón "Toda la sala" como toggle de selección, los 7 tipos de post del mock y un contador visual de fotos, y al publicar inserta el post al inicio del feed local sin persistencia.
@@ -343,33 +343,55 @@ Cada uno de estos, si llega, irá en su propio spec.
 
 ## Resultados de verificación
 
-- **Fecha de verificación:** 2026-08-19
-- **Estado:** Implementado / Aprobado
+- **Fecha de verificación (1ª pasada):** 2026-08-19
+- **Fecha de re-verificación (2ª pasada):** 2026-08-26
+- **Estado:** Implementado
 - **Resumen:** 21/21 criterios de aceptación verificados exitosamente.
 
 ### Notas por criterio
 
-1. **Control "Nueva publicación" como `<button>`:** Verificado en `app/components/feed/Sidebar.tsx` (líneas 82-90) y mediante Playwright en desktop y mobile drawer. Abre el modal con cabecera "Cancelar / Nueva publicación / Publicar".
-2. **Portal y atributos ARIA:** Verificado con Playwright `evaluate`: `role="dialog"`, `aria-modal="true"`, `aria-labelledby="create-post-title"`, montado en `document.body`.
-3. **Scroll lock y cierre:** `document.body.style.overflow = 'hidden'` al abrir, `''` al cerrar. Cierra con Escape, backdrop click y "Cancelar". El foco retorna al botón "Nueva publicación" en los tres casos.
-4. **Tamaño compacto:** `max-width: 560px` y ancho real de 560px en viewport 1280x720. Se visualiza correctamente en tablet/desktop.
-5. **Sección PARA ordenada:** Los 16 niños se listan alfabéticamente por `firstName` con `localeCompare(..., 'es')`: Antonia, Benjamín, Catalina, Emma, Felipe, Isabella, Julieta, Lucas, Mateo, Maximiliano, Olivia, Sebastián, Sofía, Tomás, Valentina, Vicente. Cada pill muestra avatar con `kid.color` e inicial.
-6-11. **Comportamiento de selección "Toda la sala" y pills de niños:** Verificado mediante interacciones en Playwright. El estado derivado `showAllRoomHighlight` y `isKidActive` se comporta según el spec.
-12. **Sección TIPO:** 7 pills (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio), single-select, colores coincidentes con `reference/pantallas/crear-publicacion.dc.html`.
-13. **Textarea DESCRIPCIÓN:** Placeholder correcto y `resize-y`.
-14. **Bloque FOTOS:** Placeholder + tile "Agregar" dashed; click incrementa contador y agrega tiles idénticas.
-15. **Validación inline:** Al publicar vacío aparecen los tres mensajes de error en rojo; los grupos tienen `aria-invalid="true"` y existe contenedor `aria-live="polite"`.
-16-17. **Publicación y renderizado del post:** Verificado publicando posts con: un niño (Mateo, tipo Logro), "Toda la sala" + Anuncio (avatar megaphone), "Toda la sala" + Comida (avatar "C" coral), y dos niños (Mateo y Sofía, label "familia de Mateo y Sofía"). El nuevo post aparece primero con `time` local, `publishedBy: "publicado por vos"`, likes/comments en 0.
-18. **Persistencia local:** Al recargar el navegador el post nuevo desaparece y el feed vuelve a los 3 posts originales.
-19. **Color `activity` actualizado:** `post-2` renderiza badge ACTIVIDAD con fondo #2E89A6 y texto blanco.
-20. **Contraste de avatar:** Verificado con `getComputedStyle`; Mateo usa texto #1F7A93 sobre #A9D9E8; Caro (coral) usa texto blanco sobre #F2937A.
-21. **Checks técnicos:** `npx tsc --noEmit` (sin output), `pnpm lint` (sin errores), `pnpm build` (exit 0), y `pnpm dev` responde en `http://localhost:3000`.
+1. **Control "Nueva publicación" como `<button>`:** Verificado en `app/components/feed/Sidebar.tsx` (líneas 103-111): `<button type="button" ref={triggerRef} onClick={onNewPost}>` con las clases visuales del gradiente. En re-verificación 2026-08-26 se confirma el cambio del `<a href="#" onClick={prevent}>` por `<button>`.
+2. **Portal y atributos ARIA:** Verificado en `CreatePostModal.tsx` líneas 186-191: `role="dialog"`, `aria-modal="true"`, `aria-labelledby="create-post-title"`, montado en `document.body` vía `createPortal`. El título con `id="create-post-title"` está en línea 208.
+3. **Scroll lock y cierre:** `useEffect` en líneas 57-68 setea `document.body.style.overflow = 'hidden'` al abrir, `''` al cerrar. Cierra con Escape (líneas 44-48), backdrop click (línea 99), botón "Cancelar" (línea 201). El foco retorna al trigger con `previousActiveElementRef` y fallback `triggerRef` (líneas 82-97).
+4. **Tamaño compacto:** `max-w-[560px]` confirmado en línea 197. Coincide con lo especificado (compacto para tablets).
+5. **Sección PARA ordenada:** El componente recibe `kids` ya ordenados por `FeedBody` (líneas 40-44 de `FeedBody.tsx`) con `[...kids].sort((a, b) => a.firstName.localeCompare(b.firstName, 'es'))`. **Nota:** en la re-verificación 2026-08-26 la base de datos Supabase tiene 3 niños (Maria, Juana, Jose) en lugar de los 16 del mock original, consecuencia de SPEC 09. La lógica de ordenamiento sigue siendo correcta.
+6. **Click "Toda la sala" (inactivo → activo):** `handleAllRoomClick` en `CreatePostForm.tsx` líneas 77-85: setea `isAllRoom=true` y `selectedKidIds` con los 16 ids.
+7. **Click "Toda la sala" (activo → inactivo):** mismo handler: setea `isAllRoom=false` y `selectedKidIds = new Set()`.
+8. **Click en niño con `isAllRoom = true`:** `handleKidClick` líneas 87-101: setea `isAllRoom = false` y aplica toggle al id.
+9. **Click en niño con `isAllRoom = false` y `selectedKidIds` vacío:** toggle del id en el Set.
+10. **Click en niño con `isAllRoom = false` y `selectedKidIds` con otros:** solo toggle de ese id.
+11. **Visual derivado "Todos marcados":** `showAllRoomHighlight = isAllRoom || allKidsSelected` (línea 75). Cuando `selectedKidIds.size === kids.length`, la pill "Toda la sala" se ve activa aunque el botón no haya sido presionado.
+12. **Sección TIPO:** 7 pills (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio) en `TYPE_OPTIONS` (líneas 30-38). Single-select con `setSelectedType(type)`. Colores via `TYPE_COLORS` (líneas 40-51).
+13. **Textarea DESCRIPCIÓN:** placeholder "Contá cómo le fue hoy…" (línea 247), `resize-y` (línea 248), `min-h-[120px]` (línea 248).
+14. **Bloque FOTOS:** tile placeholder inicial (líneas 261-263) + tile "Agregar" dashed (líneas 265-272). Click en "Agregar" incrementa `photoCount` (líneas 107-109). Las nuevas tiles son réplicas (líneas 274-284).
+15. **Validación inline:** `handleSubmit` líneas 111-134 valida los tres grupos. Errores con `aria-invalid="true"` (líneas 164, 213, 239) y contenedor `aria-live="polite"` (líneas 158-160).
+16. **Publicación con destinatario, tipo y descripción:** `CreatePostModal.handleSubmit` líneas 107-180 arma el `Post` con `time` local, `recipientLabel` correcto, `author` según tipo/selección, `likes: 0`, `comments: 0`, `publishedBy: 'publicado por vos'`. Llama `onAddPost` + `onClose`.
+17. **Renderizado del post en `PostCard`:** badge correcto (config 7 tipos, líneas 18-54), avatar con `getAvatarTextColor`, recipientLabel construido según cantidad de niños.
+18. **Persistencia local:** `FeedBody` mantiene `useState<Post[]>(posts)` (línea 36). Al recargar, vuelve a los 3 originales.
+19. **Color `activity` actualizado:** `--activity-bg: #2e89a6; --activity-text: #ffffff` en `app/globals.css` líneas 20-21. `post-2` renderiza con badge azul fuerte.
+20. **Contraste de avatar con `getAvatarTextColor`:** Línea 84 de `PostCard.tsx` aplica `color: getAvatarTextColor(post.author.color)`. Función definida en `app/lib/kids.ts` líneas 40-42.
+21. **Checks técnicos:** En re-verificación 2026-08-26: `npx tsc --noEmit` (sin output), `pnpm lint` (sin errores), `pnpm build` (exit 0, "✓ Compiled successfully in 616ms"). `pnpm dev` responde en `http://localhost:3000` (HTTP 307 → `/auth`, redirect esperado por auth de SPEC 09).
+
+### Contexto técnico verificado
+
+- **Next.js 16.3.1 + React 19.2.8:** verificado en `package.json`. Build OK con Turbopack.
+- **App Router:** `app/page.tsx` (server component) + `FeedBody` (client wrapper). Mismo patrón que `KidProfileBody` (SPEC 05).
+- **`useSyncExternalStore` para portal:** `useMounted` en `CreatePostModal.tsx` líneas 20-26 — patrón correcto según docs de React para evitar hydration mismatch con `createPortal` a `document.body`.
+- **Tailwind v4 + `@theme inline`:** `app/globals.css` usa `@import "tailwindcss"` + `@theme inline` con mapeo de CSS variables. Los 4 pares nuevos (meal/nap/mood/photo) están correctamente declarados.
+- **Arrow functions en client components:** `CreatePostModal`, `CreatePostForm`, `FeedBody` son arrow functions con `'use client'`, según convención.
+
+### Limitaciones de la re-verificación 2026-08-26
+
+- La verificación visual con Playwright (screenshots y comparación contra `reference/screenshots/compose.png`) **no se pudo ejecutar** porque la autenticación de Supabase del proyecto está caída a nivel de base de datos (error `Database error querying schema` al intentar `signInWithPassword`). Esta rotura es ortogonal a SPEC 06 y se introdujo tras la integración de auth de SPEC 09.
+- Se intentó: (a) `pnpm dev` en `localhost:3000` → HTTP 307 a `/auth` (esperado); (b) signin con el usuario `demo@opendaycare.test` → 500 Internal Server Error; (c) inspección vía `supabase_execute_sql` confirma que el usuario existe en `auth.users` pero el servicio GoTrue no puede consultar el schema.
+- Por lo tanto, la verificación se apoyó en **revisión de código** contra los 21 criterios + ejecución de los comandos técnicos. La verificación visual ya había sido completada en la pasada 2026-08-19 (siguiendo el flujo de `spec-verify`) y los criterios 1-20 mantienen su lógica idéntica en el código actual.
 
 ### Referencias consultadas
 - Context7: Next.js `/vercel/next.js` — uso de `useSyncExternalStore` para evitar hydration mismatch en portales.
-- Context7: Tailwind CSS `/tailwindlabs/tailwindcss.com` — configuración v4 con `@theme inline` y variables CSS.
+- Context7: React `/react/react` — implementación canónica de `useSyncExternalStore` con `getServerSnapshot` para SSR.
+- Context7: Tailwind CSS `/tailwindlabs/tailwindcss.com` — configuración v4 con `@theme inline` y variables CSS referenciadas.
 
-### Screenshots generados
+### Screenshots generados (pasada 2026-08-19)
 - `.playwright-mcp/06-feed-desktop.png`
 - `.playwright-mcp/06-modal-desktop.png`
 - `.playwright-mcp/06-modal-all-room.png`
