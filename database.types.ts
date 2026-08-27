@@ -1,8 +1,10 @@
 // Database types for the open-daycare project.
 //
 // Regenerated from the linked Supabase project (fshwfkppcetvqnrccllq) on 2026-08-26
-// (SPEC 10 — added `parent_children`, `invitations`, `Enums.relationship_type`,
-// `Enums.invitation_status`; tables now ordered alphabetically by Supabase).
+// (SPEC 06 — added `invitations.sent_at` + `invitations.last_send_error` for Resend
+// email audit; previous SPEC 10 added `parent_children`, `invitations`,
+// `Enums.relationship_type`, `Enums.invitation_status`; tables now ordered
+// alphabetically by Supabase).
 // To regenerate:
 //   - MCP: call `generate_typescript_types`
 //   - CLI: `supabase gen types typescript --linked --schema=public`
@@ -108,7 +110,9 @@ export type Database = {
           full_name: string
           id: string
           invited_by: string
+          last_send_error: string | null
           relationship: Database["public"]["Enums"]["relationship_type"]
+          sent_at: string | null
           status: Database["public"]["Enums"]["invitation_status"]
           updated_at: string
         }
@@ -122,7 +126,9 @@ export type Database = {
           full_name: string
           id?: string
           invited_by: string
+          last_send_error?: string | null
           relationship: Database["public"]["Enums"]["relationship_type"]
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["invitation_status"]
           updated_at?: string
         }
@@ -136,7 +142,9 @@ export type Database = {
           full_name?: string
           id?: string
           invited_by?: string
+          last_send_error?: string | null
           relationship?: Database["public"]["Enums"]["relationship_type"]
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["invitation_status"]
           updated_at?: string
         }
@@ -407,18 +415,8 @@ export type CompositeTypes<
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : never
 
 export const Constants = {
   public: {
