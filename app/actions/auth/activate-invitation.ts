@@ -1,7 +1,8 @@
 'use server';
 
-// SPEC 10 — `/auth/active` server action: signs up a parent via Supabase Auth,
-// runs `acceptInvitationByCode`, and flips `public.users.status` to `'active'`.
+// SPEC 10 — `/auth/active` server action: signs up (or signs in if the user
+// already exists) a parent via Supabase Auth, runs `acceptInvitationByCode`,
+// and flips `public.users.status` to `'active'`.
 //
 // The trigger `handle_new_user` (DB-02) requires `daycare_id` in
 // `raw_user_meta_data`. To get it, this action does a service-role read of the
@@ -9,6 +10,10 @@
 // matches after the parent is authenticated, so the read cannot run under the
 // session). The service-role client is server-only and never touches the
 // browser. See `lib/supabase/admin.ts` for the safety boundary.
+//
+// When email confirmations are enabled and a user already exists, Supabase's
+// signUp returns an obfuscated (fake) user instead of an error. To handle this,
+// we detect the obfuscated response and fall back to signInWithPassword.
 
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -31,6 +36,32 @@ const mapSignUpError = (code: string | undefined): string => {
     return 'La contraseña debe tener al menos 8 caracteres.';
   }
   return 'No pudimos crear tu cuenta. Probá de nuevo.';
+};
+
+const mapSignInError = (code: string | undefined): string => {
+  if (code === 'invalid_credentials') {
+    return 'Ya existe una cuenta con este email. Ingresá la contraseña correcta.';
+  }
+  if (code === 'email_not_confirmed') {
+    return 'Tu cuenta todavía no confirmó el email. Revisá tu casilla.';
+  }
+  return 'No pudimos iniciar sesión. Probá de nuevo.';
+};
+
+/**
+ * Detect the obfuscated user returned by signUp when the user already exists
+ * and email confirmations are enabled. The obfuscated user has
+ * `email_confirmed_at: null` and was created within the last few seconds
+ * (Supabase creates the fake user on the fly).
+ */
+const isObfuscatedUser = (
+  user: { id: string; email_confirmed_at: string | null; created_at?: string },
+): boolean => {
+  if (user.email_confirmed_at !== null) return false;
+  if (!user.created_at) return true;
+  const createdAt = new Date(user.created_at).getTime();
+  const now = Date.now();
+  return now - createdAt < 5_000;
 };
 
 export const activateInvitation = async (
@@ -89,6 +120,10 @@ export const activateInvitation = async (
   }
 
   const supabase = await createSupabaseServerClient();
+
+  // Try signUp first. When email confirmations are enabled, an existing user
+  // returns an obfuscated (fake) user with `email_confirmed_at: null` and a
+  // `created_at` within the last few seconds instead of an error.
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
@@ -102,13 +137,48 @@ export const activateInvitation = async (
     },
   });
 
-  if (signUpError || !signUpData.user) {
-    return { error: mapSignUpError(signUpError?.code) };
+  let authUserId: string;
+
+  if (signUpError) {
+    // Explicit error from Supabase (e.g., signup_disabled, weak_password).
+    return { error: mapSignUpError(signUpError.code) };
+  }
+
+  if (
+    signUpData.user &&
+    isObfuscatedUser(signUpData.user as { id: string; email_confirmed_at: string | null; created_at?: string })
+  ) {
+    // Obfuscated response: user already exists. Try to sign in with the
+    // provided password so the session is set for acceptInvitationByCode.
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      return { error: mapSignInError(signInError.code) };
+    }
+
+    // Resolve the real user ID via the now-authenticated session.
+    const {
+      data: { user: sessionUser },
+    } = await supabase.auth.getUser();
+
+    if (!sessionUser) {
+      return { error: 'No pudimos autenticar tu cuenta. Probá de nuevo.' };
+    }
+
+    authUserId = sessionUser.id;
+  } else if (signUpData.user) {
+    // Genuine new user.
+    authUserId = signUpData.user.id;
+  } else {
+    return { error: 'No pudimos crear tu cuenta. Probá de nuevo.' };
   }
 
   const acceptResult = await acceptInvitationByCode({
     code,
-    authUserId: signUpData.user.id,
+    authUserId,
     email,
   });
 
@@ -119,7 +189,7 @@ export const activateInvitation = async (
   const { error: statusError } = await supabase
     .from('users')
     .update({ status: 'active' })
-    .eq('id', signUpData.user.id);
+    .eq('id', authUserId);
 
   if (statusError) {
     return { error: 'No pudimos activar tu cuenta. Probá de nuevo.' };

@@ -17,8 +17,14 @@ export const acceptInvitationByCode = async (args: {
     .eq('code', args.code)
     .maybeSingle();
 
-  if (selectError || !inv) {
-    return { error: 'Esta invitación no es para tu email.' };
+  if (selectError) {
+    return { error: 'No pudimos validar la invitación. Probá de nuevo.' };
+  }
+
+  if (!inv) {
+    return {
+      error: 'Esta invitación no es para tu email o ya no está disponible.',
+    };
   }
 
   if (inv.status !== 'pending') {
