@@ -1,6 +1,6 @@
 # SPEC 06 (DB) — Columnas `sent_at` y `last_send_error` en `public.invitations`
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Folder:** `specs/dbase/` (DB-06)
 > **Depende de:** DB-05 (`public.invitations` + RLS)
 > **Fecha:** 2026-08-26
@@ -71,13 +71,13 @@ Notas:
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/dbase/06-invitations-sent-at-and-error.md` en estado `Borrador` que avanza a `Aprobado` / `Implementado`.
-- [ ] Existe `supabase/migrations/<timestamp>_add_invitation_email_audit.sql` commiteado con el DDL de §Modelo de datos.
-- [ ] Las 2 columnas existen en `public.invitations` con `is_nullable = 'YES'`.
-- [ ] `database.types.ts` regenerado: `invitations.Row` incluye `sent_at: string | null` y `last_send_error: string | null`.
-- [ ] `select count(*) from public.pg_policy where polrelid = 'public.invitations'::regclass;` sigue siendo `4`.
-- [ ] `get_advisors` (MCP) sin ERRORs nuevos.
-- [ ] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
+- [x] Existe `specs/dbase/06-invitations-sent-at-and-error.md` en estado `Borrador` que avanza a `Aprobado` / `Implementado`.
+- [x] Existe `supabase/migrations/<timestamp>_add_invitation_email_audit.sql` commiteado con el DDL de §Modelo de datos.
+- [x] Las 2 columnas existen en `public.invitations` con `is_nullable = 'YES'`.
+- [x] `database.types.ts` regenerado: `invitations.Row` incluye `sent_at: string | null` y `last_send_error: string | null`.
+- [x] `select count(*) from public.pg_policy where polrelid = 'public.invitations'::regclass;` sigue siendo `4`.
+- [x] `get_advisors` (MCP) sin ERRORs nuevos.
+- [x] `git log -1 -- supabase/migrations/` muestra el commit con la migración.
 
 ## Decisiones tomadas y descartadas
 
