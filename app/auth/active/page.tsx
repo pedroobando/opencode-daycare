@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { AuthActiveBody } from '@/app/auth/active/AuthActiveBody';
@@ -23,5 +24,9 @@ export default async function AuthActivePage() {
     }
   }
 
-  return <AuthActiveBody />;
+  return (
+    <Suspense fallback={null}>
+      <AuthActiveBody />
+    </Suspense>
+  );
 }
