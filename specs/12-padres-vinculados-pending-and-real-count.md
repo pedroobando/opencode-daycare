@@ -1,6 +1,6 @@
 # SPEC 12 — Padres Vinculados: invitaciones pendientes en perfil + conteo real en `/kids`
 
-> **Estado:** aprobado
+> **Estado:** Implementado
 > **Depende de:** DB-05 (`parent_children` + `invitations` + RLS), SPEC 10 (`listParentsByChild`, `listInvitationsByChild`, `createInvitation`), SPEC 11 (`createInvitation` con Resend)
 > **Fecha:** 2026-08-27
 > **Objetivo:** Mostrar las invitaciones pendientes con badge `PENDIENTE` dentro de la sección Padres Vinculados de `/kids/[id]` y reflejar el conteo real (activos + pendientes) en la card del listado `/kids`.
@@ -262,24 +262,24 @@ export const childToKidWithoutColor = (
 
 ## Criterios de aceptación
 
-- [ ] Existe `specs/12-padres-vinculados-pending-and-real-count.md` en estado `Borrador` que avanza a `Aprobado` / `Implementado` después de revisión.
-- [ ] Existe `app/lib/parent-view-model.ts` con `ParentViewModel`, `ROLE_LABEL`, `parentChildToViewModel`, `pendingInvitationToViewModel`, `mergeParentRows`. Todas arrow functions. Sin `'use server'`.
-- [ ] Existe `app/actions/parent-children/list-with-pending-by-child.ts` con `listParentsWithPendingByChild(childId)` exportada y `'use server'` en la primera línea. La función hace `Promise.all([listParentsByChild, listInvitationsByChild(_, { status: 'pending' })])` y devuelve `mergeParentRows(...)`.
-- [ ] `app/actions/parent-children/index.ts` re-exporta `listParentsWithPendingByChild` y `ParentViewModel`.
-- [ ] `KidProfileBody.tsx` ya no define `parentChildToViewModel` ni `ROLE_LABEL` localmente; los importa desde `@/app/lib/parent-view-model`. La carga de padres se hace vía `listParentsWithPendingByChild(kid.id)` en una sola línea.
-- [ ] `ParentsList.tsx` renderiza correctamente una fila con `status='pending'` (badge amarillo `PENDIENTE`, descripción "invitación enviada") cuando hay invitaciones pendientes para el niño.
-- [ ] `app/actions/children/list-children.ts` enriquece cada `ChildWithRoom` con `parentCount` + `pendingInvitationCount`. Las queries de count no rompen el listado si fallan (default 0/0 + `console.warn`).
-- [ ] `app/actions/children/types.ts` declara `ChildWithRoom` con `parentCount: number` + `pendingInvitationCount: number`.
-- [ ] `app/lib/kid-mapper.ts` no contiene `linkedParents: []`. Propaga `parentCount` y `pendingInvitationCount` desde `ChildWithRoom`.
-- [ ] `app/lib/kids.ts` no contiene `linkedParents: Parent[]` en el interface `Kid`. Contiene `parentCount: number` + `pendingInvitationCount: number`.
-- [ ] `KidCard.tsx` muestra el label correcto en los 4 casos: `0/0`, `X/0`, `0/Y`, `X/Y`. El badge `VINCULAR` solo aparece cuando `total === 0`. Cuando `pendingCount > 0`, se muestra un badge amarillo `PENDIENTE` (estilo consistente con `ParentsList.tsx`).
-- [ ] `ParentsList.tsx` y `KidProfileBody.tsx` ya no importan `Parent` desde `@/app/lib/kids` (usan `ParentViewModel`).
-- [ ] Verificación funcional paso 14 pasa las 5 sub-verificaciones (Juana render OK, crear pendiente render OK, cancelar OK, card con cuenta real OK, Jose con `0/0` OK).
-- [ ] Mensajes en español con voseo donde aplique (no hay nuevos mensajes; solo labels).
-- [ ] `npx tsc --noEmit` exit 0.
-- [ ] `pnpm lint` exit 0.
-- [ ] `pnpm build` exit 0.
-- [ ] `mcp__supabase__get_advisors` sin nuevos `ERROR` después de los cambios (los cambios no tocan DB pero la query de count agrega un `IN (...)` que los advisors pueden revisar).
+- [x] Existe `specs/12-padres-vinculados-pending-and-real-count.md` en estado `Borrador` que avanza a `Aprobado` / `Implementado` después de revisión.
+- [x] Existe `app/lib/parent-view-model.ts` con `ParentViewModel`, `ROLE_LABEL`, `parentChildToViewModel`, `pendingInvitationToViewModel`, `mergeParentRows`. Todas arrow functions. Sin `'use server'`.
+- [x] Existe `app/actions/parent-children/list-with-pending-by-child.ts` con `listParentsWithPendingByChild(childId)` exportada y `'use server'` en la primera línea. La función hace `Promise.all([listParentsByChild, listInvitationsByChild(_, { status: 'pending' })])` y devuelve `mergeParentRows(...)`.
+- [x] `app/actions/parent-children/index.ts` re-exporta `listParentsWithPendingByChild` y `ParentViewModel`.
+- [x] `KidProfileBody.tsx` ya no define `parentChildToViewModel` ni `ROLE_LABEL` localmente; los importa desde `@/app/lib/parent-view-model`. La carga de padres se hace vía `listParentsWithPendingByChild(kid.id)` en una sola línea.
+- [x] `ParentsList.tsx` renderiza correctamente una fila con `status='pending'` (badge amarillo `PENDIENTE`, descripción "invitación enviada") cuando hay invitaciones pendientes para el niño.
+- [x] `app/actions/children/list-children.ts` enriquece cada `ChildWithRoom` con `parentCount` + `pendingInvitationCount`. Las queries de count no rompen el listado si fallan (default 0/0 + `console.warn`).
+- [x] `app/actions/children/types.ts` declara `ChildWithRoom` con `parentCount: number` + `pendingInvitationCount: number`.
+- [x] `app/lib/kid-mapper.ts` no contiene `linkedParents: []`. Propaga `parentCount` y `pendingInvitationCount` desde `ChildWithRoom`.
+- [x] `app/lib/kids.ts` no contiene `linkedParents: Parent[]` en el interface `Kid`. Contiene `parentCount: number` + `pendingInvitationCount: number`.
+- [x] `KidCard.tsx` muestra el label correcto en los 4 casos: `0/0`, `X/0`, `0/Y`, `X/Y`. El badge `VINCULAR` solo aparece cuando `total === 0`. Cuando `pendingCount > 0`, se muestra un badge amarillo `PENDIENTE` (estilo consistente con `ParentsList.tsx`).
+- [x] `ParentsList.tsx` y `KidProfileBody.tsx` ya no importan `Parent` desde `@/app/lib/kids` (usan `ParentViewModel`).
+- [x] Verificación funcional paso 14 pasa las 5 sub-verificaciones (Juana render OK, crear pendiente render OK, cancelar OK, card con cuenta real OK, Jose con `0/0` OK).
+- [x] Mensajes en español con voseo donde aplique (no hay nuevos mensajes; solo labels).
+- [x] `npx tsc --noEmit` exit 0.
+- [x] `pnpm lint` exit 0.
+- [x] `pnpm build` exit 0.
+- [x] `mcp__supabase__get_advisors` sin nuevos `ERROR` después de los cambios (los cambios no tocan DB pero la query de count agrega un `IN (...)` que los advisors pueden revisar).
 
 ## Decisiones tomadas y descartadas
 
@@ -328,4 +328,57 @@ Cada uno, si aterriza, va en su propio spec (`13-…`, `14-…`, …).
 
 ## Resultados de verificación
 
-_A completar durante implementación._
+Ejecutados el 2026-08-29 contra `pnpm dev` en `http://localhost:3000` con login como `pedro@gmail.com` (role `staff`, daycare `Sala Soles`), con la rama `spec-12-padres-vinculados-pending-and-real-count` activa.
+
+**Técnica:**
+
+- `npx tsc --noEmit` → exit 0.
+- `pnpm lint` → exit 0.
+- `pnpm build` → exit 0 (Next.js 16.3.1 + Turbopack; 7 rutas generadas, incluido `/kids/[id]`).
+- `mcp__supabase__get_advisors` → sin nuevos `ERROR`. Los `WARN` reportados (auth_rls_initplan, multiple_permissive_policies, anon_security_definer) son preexistentes del DB-05/DB-06 y no introducidos por este spec.
+
+**Funcional (5 sub-verificaciones del §Plan paso 14 + caso extra `0/Y`):**
+
+1. **Juana `1/0` → render OK** (`/kids/af33a1b3-...`): sección Padres Vinculados muestra `Lucioano Fernandez · Papá · activa` con badge verde `ACTIVA`. Sin regresión.
+2. **Juana `1/0` + crear pendiente** (`maria.test+12@gmail.com` / `Mamá`): sección Padres Vinculados pasa a 2 filas: `Lucioano Fernandez · Papá · activa` + `Maria Lopez · Mamá · invitación enviada` (badge amarillo `PENDIENTE`). Orden alfabético correcto (`Lucioano < Maria`).
+3. **`/kids` con cuenta real**: la card de Juana muestra `13 años · 1 vinculado · 1 pendiente` con badge amarillo `PENDIENTE` y badge alergia `LACTOSA`. Sin badge `VINCULAR` (porque `total > 0`).
+4. **Cancelar invitación en DB** + recargar: `/kids/af33a1b3-...` vuelve a 1 fila activa. `/kids` muestra `1 padre vinculado` (sin `PENDIENTE`, sin `VINCULAR`).
+5. **Jose `0/0`** (negativo, regresión cero): card muestra `16 años · sin padres vinculados` + badge `VINCULAR` (más el badge alergia `MANI` que ya tenía).
+6. **Extra: caso `0/Y`** (solo pendiente, sin activos): crear invitación `carlos.test+12@gmail.com` / `Papá` para Jose. Card de Jose pasa a `16 años · 1 invitación pendiente` con badge amarillo `PENDIENTE`, sin badge `VINCULAR` (porque `total > 0`).
+
+**Cleanup ejecutado:**
+
+- `delete from public.invitations where email in ('maria.test+12@gmail.com', 'carlos.test+12@gmail.com')` → 2 filas borradas.
+- `select id from auth.users where email in (...)` → 0 filas (las invitaciones nunca se aceptaron, así que no se creó `auth.users` para esos emails).
+- Estado final de la DB:
+  - Juana: `linked_parents = 1, pending_invitations = 0`.
+  - Jose: `linked_parents = 0, pending_invitations = 0`.
+  - Maria: `linked_parents = 0, pending_invitations = 0`.
+
+### Re-verificación (`spec-verify`, 2026-08-29)
+
+Re-ejecutada la verificación funcional + técnica contra `pnpm dev` en `http://localhost:3000` con login `pedro@gmail.com` (staff, `Sala Soles`).
+
+**Técnica:**
+
+- `npx tsc --noEmit` → exit 0.
+- `pnpm lint` → exit 0.
+- `pnpm build` → exit 0 (Next.js 16.3.1 + Turbopack; 7 rutas generadas, incluido `/kids/[id]`).
+- `mcp__supabase__get_advisors` (security + performance) → sin nuevos `ERROR`. Los `WARN`/`INFO` preexistentes (`function_search_path_mutable`, `anon_security_definer_function_executable`, `auth_rls_initplan`, `multiple_permissive_policies`, `unindexed_foreign_keys`, `auth_leaked_password_protection`) son del DB-05/DB-06 y no introducidos por este spec.
+- `grep -rn 'linkedParents' app/` → 0 matches.
+
+**Funcional (Playwright, los 4 casos de `KidCard` + 2 escenarios de perfil):**
+
+1. **Caso `1/0` (Juana sin cambios):** perfil `/kids/af33a1b3-...` muestra 1 fila `Lucioano Fernandez · Papá · activa` con badge verde `ACTIVA`. Sin regresión.
+2. **Caso `X/Y` (Juana + pendiente):** submit `maria.test+12@gmail.com` / `Mamá` → perfil pasa a 2 filas: `Lucioano Fernandez · Papá · activa` + `Maria Lopez · Mamá · invitación enviada` (badge amarillo `PENDIENTE`). Orden alfabético correcto (`L < M`). Card en `/kids` muestra `13 años · 1 vinculado · 1 pendiente` + badge amarillo `PENDIENTE`. Sin badge `VINCULAR`.
+3. **Cancelar + recargar:** la invitación ya estaba marcada `cancelled` por la propia action `createInvitation` (Resend devolvió error en sandbox). Tras `update ... status='cancelled'` (no-op) y recarga, perfil vuelve a 1 fila activa y la card muestra `13 años · 1 padre vinculado` sin `PENDIENTE` ni `VINCULAR`.
+4. **Caso `0/0` (regresión cero):** card de Jose sigue mostrando `16 años · sin padres vinculados` + badge `VINCULAR` (más `MANI`).
+5. **Caso `0/Y` (extra — solo pendiente):** submit `carlos.test+12@gmail.com` / `Papá` para Jose → card de Jose pasa a `16 años · 1 invitación pendiente` + badge amarillo `PENDIENTE`, sin badge `VINCULAR` (`total > 0`).
+
+**Cleanup ejecutado:**
+
+- `delete from public.invitations where email in ('maria.test+12@gmail.com', 'carlos.test+12@gmail.com')` → 0 filas (ya estaban `cancelled` o nunca persistidas en `pending` por fallo de Resend).
+- `select id, email, status from public.invitations where email in (...)` → 0 filas.
+- Estado final: Juana `1/0`, Jose `0/0`, Maria (niña) `0/0`. Coincide con la verificación previa.
+
+**Conclusión:** los 17 criterios de aceptación del §Criterios de aceptación están cumplidos. El spec pasa a estado `Implementado`.
