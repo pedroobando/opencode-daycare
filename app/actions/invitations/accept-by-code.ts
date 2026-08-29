@@ -1,18 +1,18 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 export const acceptInvitationByCode = async (args: {
   code: string;
   authUserId: string;
   email: string;
 }): Promise<{ error: string | null }> => {
-  const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
 
-  const { data: inv, error: selectError } = await supabase
+  const { data: inv, error: selectError } = await admin
     .from('invitations')
     .select(
-      '*, children!inner(room_id, rooms!inner(daycare_id))',
+      'id, code, status, email, relationship, child_id, expires_at',
     )
     .eq('code', args.code)
     .maybeSingle();
@@ -27,6 +27,10 @@ export const acceptInvitationByCode = async (args: {
     };
   }
 
+  if (inv.email.toLowerCase() !== args.email.toLowerCase()) {
+    return { error: 'Esta invitación no es para tu email.' };
+  }
+
   if (inv.status !== 'pending') {
     return { error: 'Esta invitación ya no está disponible.' };
   }
@@ -35,19 +39,21 @@ export const acceptInvitationByCode = async (args: {
     return { error: 'Esta invitación expiró.' };
   }
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await admin
     .from('invitations')
     .update({
       status: 'accepted',
       accepted_at: new Date().toISOString(),
     })
-    .eq('id', inv.id);
+    .eq('id', inv.id)
+    .eq('email', args.email)
+    .eq('status', 'pending');
 
   if (updateError) {
     return { error: 'No pudimos activar la invitación. Probá de nuevo.' };
   }
 
-  const { error: linkError } = await supabase.from('parent_children').insert({
+  const { error: linkError } = await admin.from('parent_children').insert({
     parent_id: args.authUserId,
     child_id: inv.child_id,
     relationship: inv.relationship,

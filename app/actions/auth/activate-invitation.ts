@@ -186,7 +186,7 @@ export const activateInvitation = async (
     return { error: acceptResult.error };
   }
 
-  const { error: statusError } = await supabase
+  const { error: statusError } = await admin
     .from('users')
     .update({ status: 'active' })
     .eq('id', authUserId);
