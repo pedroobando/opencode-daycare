@@ -8,10 +8,9 @@ import { KidProfileHeader } from '@/app/components/kids/KidProfileHeader';
 import { ParentsList } from '@/app/components/kids/ParentsList';
 import { LinkParentModal } from '@/app/components/kids/LinkParentModal';
 import { ArrowLeftIcon, LogoIcon } from '@/app/components/icons';
-import { pickNextColor } from '@/app/utils/avatar-colors';
-import type { Kid, Parent } from '@/app/lib/kids';
-import type { ParentChildWithUser } from '@/app/actions/parent-children';
-import { listParentsByChild } from '@/app/actions/parent-children';
+import type { Kid } from '@/app/lib/kids';
+import type { ParentViewModel } from '@/app/lib/parent-view-model';
+import { listParentsWithPendingByChild } from '@/app/actions/parent-children';
 
 interface KidProfileBodyProps {
   kid: Kid;
@@ -34,46 +33,14 @@ const formatMonthYear = (isoDate: string): string => {
   }).format(date);
 };
 
-const ROLE_LABEL: Record<ParentChildWithUser['relationship'], string> = {
-  father: 'Papá',
-  mother: 'Mamá',
-  guardian: 'Tutor/a',
-};
-
-const parentChildToViewModel = (
-  link: ParentChildWithUser,
-  existing: Parent[],
-): Parent | null => {
-  const fullName = link.users?.full_name ?? '';
-  if (fullName === '') {
-    return null;
-  }
-
-  return {
-    id: link.id,
-    name: fullName,
-    role: ROLE_LABEL[link.relationship],
-    status: 'active',
-    initial: fullName.charAt(0).toUpperCase(),
-    color: pickNextColor(existing, (parent) => parent.color),
-  };
-};
-
 export const KidProfileBody = ({ kid }: KidProfileBodyProps) => {
-  const [parents, setParents] = useState<Parent[]>([]);
+  const [parents, setParents] = useState<ParentViewModel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const refreshParents = useCallback(async () => {
-    const rows = await listParentsByChild(kid.id);
-    const next: Parent[] = [];
-    for (const link of rows) {
-      const mapped = parentChildToViewModel(link, next);
-      if (mapped !== null) {
-        next.push(mapped);
-      }
-    }
-    setParents(next);
+    const rows = await listParentsWithPendingByChild(kid.id);
+    setParents(rows);
   }, [kid.id]);
 
   useEffect(() => {

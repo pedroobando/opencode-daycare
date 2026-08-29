@@ -1,17 +1,7 @@
-// Mock data removed in SPEC 09; view-model types only (Kid + Parent hierarchy
-// + avatar helpers). Real data now lives in Supabase and is fetched via
-// `app/actions/children/list-children` / `get-child-by-id`.
-
-export type ParentStatus = 'active' | 'pending';
-
-export interface Parent {
-  id: string;
-  name: string;
-  role: string;
-  status: ParentStatus;
-  initial: string;
-  color: string;
-}
+// Mock data removed in SPEC 09; view-model types only (Kid + avatar helpers).
+// Real data now lives in Supabase and is fetched via
+// `app/actions/children/list-children` / `get-child-by-id`. The parent view
+// model (`ParentViewModel`) lives in `app/lib/parent-view-model.ts`.
 
 export interface Kid {
   id: string;
@@ -25,7 +15,8 @@ export interface Kid {
   initial: string;
   color: string;
   allergies?: string;
-  linkedParents: Parent[];
+  parentCount: number;
+  pendingInvitationCount: number;
 }
 
 const avatarTextColors: Record<string, string> = {

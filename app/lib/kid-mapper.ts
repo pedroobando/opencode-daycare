@@ -44,7 +44,8 @@ export const childToKidWithoutColor = (
     initial: firstName.charAt(0).toUpperCase(),
     allergies:
       child.allergy_tags.length > 0 ? child.allergy_tags.join(', ') : undefined,
-    linkedParents: [],
+    parentCount: child.parentCount,
+    pendingInvitationCount: child.pendingInvitationCount,
   };
 };
 

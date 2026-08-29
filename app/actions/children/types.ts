@@ -6,6 +6,8 @@ export type ChildUpdate = Database['public']['Tables']['children']['Update'];
 
 export type ChildWithRoom = ChildRow & {
   rooms: { id: string; name: string; daycare_id: string } | null;
+  parentCount: number;
+  pendingInvitationCount: number;
 };
 
 export type CreateChildState = {

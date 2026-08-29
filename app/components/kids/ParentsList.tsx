@@ -1,11 +1,11 @@
 'use client';
 
-import type { Parent } from '@/app/lib/kids';
+import type { ParentViewModel } from '@/app/lib/parent-view-model';
 import { getAvatarTextColor } from '@/app/lib/kids';
 import { PlusIcon } from '@/app/components/icons';
 
 interface ParentsListProps {
-  parents: Parent[];
+  parents: ParentViewModel[];
   onRequestLinkParent: () => void;
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
@@ -25,7 +25,7 @@ const statusConfig = {
   },
 };
 
-const ParentItem = ({ parent }: { parent: Parent }) => {
+const ParentItem = ({ parent }: { parent: ParentViewModel }) => {
   const config = statusConfig[parent.status];
   const textColor = getAvatarTextColor(parent.color);
 

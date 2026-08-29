@@ -13,15 +13,40 @@ const extractAllergyLabel = (allergyText: string): string => {
   return label.toUpperCase();
 };
 
+const pluralizeActiveOnly = (count: number): string => {
+  return count === 1 ? 'padre vinculado' : 'padres vinculados';
+};
+
+const pluralizePendingOnly = (count: number): string => {
+  return count === 1 ? 'invitación pendiente' : 'invitaciones pendientes';
+};
+
+const pluralizeMixed = (
+  active: number,
+  pending: number,
+): string => {
+  const activeWord = active === 1 ? 'vinculado' : 'vinculados';
+  const pendingWord = pending === 1 ? 'pendiente' : 'pendientes';
+  return `${active} ${activeWord} · ${pending} ${pendingWord}`;
+};
+
 export const KidCard = ({ kid }: KidCardProps) => {
-  const parentCount = kid.linkedParents.length;
+  const activeCount = kid.parentCount;
+  const pendingCount = kid.pendingInvitationCount;
+  const totalCount = activeCount + pendingCount;
+
   const parentLabel =
-    parentCount === 0
+    totalCount === 0
       ? 'sin padres vinculados'
-      : `${parentCount} ${parentCount === 1 ? 'padre vinculado' : 'padres vinculados'}`;
+      : pendingCount === 0
+        ? `${activeCount} ${pluralizeActiveOnly(activeCount)}`
+        : activeCount === 0
+          ? `${pendingCount} ${pluralizePendingOnly(pendingCount)}`
+          : pluralizeMixed(activeCount, pendingCount);
 
   const showAllergyBadge = Boolean(kid.allergies);
-  const showLinkBadge = parentCount === 0;
+  const showLinkBadge = totalCount === 0;
+  const showPendingBadge = pendingCount > 0;
   const allergyLabel = kid.allergies ? extractAllergyLabel(kid.allergies) : '';
 
   const textColor = getAvatarTextColor(kid.color);
@@ -50,6 +75,12 @@ export const KidCard = ({ kid }: KidCardProps) => {
       {showAllergyBadge && (
         <span className="flex-none rounded-full bg-[#FBD8CC] px-[9px] py-[5px] text-[11px] font-extrabold text-[#D9684A]">
           {allergyLabel}
+        </span>
+      )}
+
+      {showPendingBadge && (
+        <span className="flex-none rounded-full bg-[#F7E7A6] px-[9px] py-1 text-[10.5px] font-extrabold text-[#9A7B1E]">
+          PENDIENTE
         </span>
       )}
 
